@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # imports
-import Elements
+import Game
 import sys
 
 # class
@@ -23,38 +23,36 @@ class Controller(ControllerBase):
     def __init__(self):
         super().__init__()
         self.joueurList = []
-        self.WINDOW_SIZE = Elements.WINDOW_SIZE
+        self.WINDOW_SIZE = Game.WINDOW_SIZE
+        self.game = Game.Game()
+        self.playerList = self.game.getElements()
 
-    def createJoueur(self):
-        newJoueur = Elements.Player()
-        self.joueurList.append(newJoueur)
-        return(newJoueur)
+    def getPlayerInformations(self, player):
+        return(player.getX(), player.getY(), player.getSize(),
+               player.getColor())
 
-    def getJoueurInformations(self, joueurNumber=0):
-        joueur = self.joueurList[joueurNumber]
-        return(joueur.getX(), joueur.getY(), joueur.getSize(),
-               joueur.getColor())
-
-    def moveJoueur(self, direction, joueurNumber=0):
+    def movePlayer(self, direction, playerNumber=0):
         """
         direction doit être jump, left ou right
         """
-        joueur = self.joueurList[joueurNumber]
+        player = self.playerList[playerNumber]
         if direction.lower() == "jump":
-            joueur.jump()
+            player.jump()
         elif direction.lower() == "left":
-            joueur.moveLeft()
+            player.moveLeft()
         elif direction.lower() == "right":
-            joueur.moveRight()
+            player.moveRight()
         else:
             print("direction must be jump, left or right")
             sys.exit()
 
-    def getJoueurPosition(self, joueurNumber=0):
-        joueur = self.joueurList[joueurNumber]
-        joueur.updateYPosition()
-        return(joueur.getX(), joueur.getY())
+    def getPlayerList(self):
+        return self.playerList
 
-    def getStringJoueurPosition(self, joueurNumber=0):
-        joueur = self.joueurList[joueurNumber]
-        return joueur.getPosition()
+    def getPlayerPosition(self, player):
+        player.updateXYPosition()
+        return(player.getX(), player.getY())
+
+    def getStringPlayerPosition(self, playerNumber=0):
+        player = self.playerList[playerNumber]
+        return player.getPosition()

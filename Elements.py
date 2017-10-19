@@ -6,10 +6,12 @@
 WINDOW_SIZE = (0, 0, 300, 300)
 BALL_SIZE = 20
 PLAYER_SIZE = 50
-STEP = 20
+SPEED_INCREASE = 10
+SPEED_DECREASE = 1
 GRAVITY_BALL = 5
 GRAVITY_PLAYER = 8
 JUMP_HEIGHT = - 30
+COEF_REBOND = 0.5
 # Class
 
 
@@ -22,22 +24,31 @@ class Base(object):
         self.xSpeed = 0
         self.ySpeed = 0
         self.gravity = GRAVITY_BALL
-        self.step = STEP
+        self.speedIncrease = SPEED_INCREASE
+        self.speedDecrease = SPEED_DECREASE
         self.rebond = True
 
-    def _gravityEffect(self):
+    def _speedReduction(self):
         self.ySpeed += self.gravity
+        if abs(self.xSpeed) >= SPEED_DECREASE:
+            if self.xSpeed > 0:
+                self.xSpeed -= self.speedDecrease
+            elif self.xSpeed < 0:
+                self.xSpeed += self.speedDecrease
+        else:
+            self.xSpeed = 0
 
-    def _rebond(self, coeffRebond):
+    def _rebond(self):
         if self.rebond and self.y >= WINDOW_SIZE[-1] - self.size:
-            self.ySpeed = - coeffRebond*self.ySpeed
+            self.ySpeed = - COEF_REBOND*self.ySpeed
             if abs(self.ySpeed) < 0.6*self.size:
                 self.ySpeed = 0
 
     def updateXYPosition(self):
-        self._gravityEffect()
+        self._speedReduction()
         self._rebond()
         self.y += self.ySpeed
+        self.x += self.xSpeed
         if self.y < 0:
             self.y = 0
         elif self.y > WINDOW_SIZE[-1] - self.size:
@@ -88,11 +99,11 @@ class Player(Base):
 
     def moveLeft(self):
         if self.x > 0:
-            self.x -= self.step
+            self.xSpeed -= self.speedIncrease
 
     def moveRight(self):
         if self.x < WINDOW_SIZE[-1] - self.size:
-            self.x += self.step
+            self.xSpeed += self.speedIncrease
 
     def jump(self):
         self.ySpeed = self.jumpHeight

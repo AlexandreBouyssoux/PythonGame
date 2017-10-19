@@ -46,15 +46,19 @@ class GraphicScene(QGraphicsScene):
         super().__init__(parent)
         self.c = controller
         self.c.add(self)
-        self.joueur = self.c.createJoueur()
         self.timer = timer
         self.setSceneRect(*self.c.WINDOW_SIZE)
-        joueurX, joueurY, joueurSize, joueurColor = \
-            self.c.getJoueurInformations()
-        pen = QPen(QColor(*joueurColor), 1, Qt.SolidLine)
-        brush = QBrush(QColor(*joueurColor), Qt.SolidPattern)
-        self.ellipse = self.addEllipse(0, 0, joueurSize, joueurSize, pen,
-                                       brush)
+
+        self.dictEllipse = {}
+        for player in self.c.getPlayerList():
+            playerX, playerY, playerSize, playerColor = \
+                self.c.getPlayerInformations(player)
+            pen = QPen(QColor(*playerColor), 1, Qt.SolidLine)
+            brush = QBrush(QColor(*playerColor), Qt.SolidPattern)
+            self.dictEllipse[player] = (self.addEllipse(0, 0, playerSize,
+                                                        playerSize, pen,
+                                                        brush))
+
         self.c.refresh()
         self.timer.timeout.connect(self.updateTimer)
         self.timer.start(TIMER_REFRESH_SPEED)
@@ -64,23 +68,39 @@ class GraphicScene(QGraphicsScene):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Up:
-            self.c.moveJoueur("jump")
+            self.c.movePlayer("jump", 0)
             self.c.refresh()
-            print(self.c.getStringJoueurPosition())
+            print(self.c.getStringPlayerPosition(0))
 
         elif event.key() == Qt.Key_Left:
-            self.c.moveJoueur("left")
+            self.c.movePlayer("left", 0)
             self.c.refresh()
-            print(self.c.getStringJoueurPosition())
+            print(self.c.getStringPlayerPosition(0))
 
         elif event.key() == Qt.Key_Right:
-            self.c.moveJoueur("right")
+            self.c.movePlayer("right", 0)
             self.c.refresh()
-            print(self.c.getStringJoueurPosition())
+            print(self.c.getStringPlayerPosition(0))
+
+        if event.key() == Qt.Key_Z:
+            self.c.movePlayer("jump", 1)
+            self.c.refresh()
+            print(self.c.getStringPlayerPosition(1))
+
+        elif event.key() == Qt.Key_Q:
+            self.c.movePlayer("left", 1)
+            self.c.refresh()
+            print(self.c.getStringPlayerPosition(1))
+
+        elif event.key() == Qt.Key_D:
+            self.c.movePlayer("right", 1)
+            self.c.refresh()
+            print(self.c.getStringPlayerPosition(1))
 
     def refresh(self):
-        joueurX, joueurY = self.c.getJoueurPosition()
-        self.ellipse.setPos(joueurX, joueurY)
+        for player in self.c.getPlayerList():
+            playerX, playerY = self.c.getPlayerPosition(player)
+            self.dictEllipse[player].setPos(playerX, playerY)
 
 # launch the GUI
 
