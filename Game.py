@@ -4,7 +4,7 @@
 import Elements
 # import Interactions
 # constant
-
+WINDOW_SIZE = Elements.WINDOW_SIZE
 # class
 
 
@@ -14,3 +14,6 @@ class Game(object):
         self.player2 = Elements.Player()
         self.listPlayer = [self.player1, self.player2]
         self.ball = Elements.Base()
+
+    def getElements(self):
+        return(self.player1, self.player2, self.ball)
