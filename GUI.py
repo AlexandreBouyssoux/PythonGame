@@ -98,6 +98,7 @@ class GraphicScene(QGraphicsScene):
             print(self.c.getStringPlayerPosition(1))
 
     def refresh(self):
+        self.c.collisions()
         for player in self.c.getPlayerList():
             playerX, playerY = self.c.getPlayerPosition(player)
             self.dictEllipse[player].setPos(playerX, playerY)
