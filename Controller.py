@@ -56,3 +56,8 @@ class Controller(ControllerBase):
     def getStringPlayerPosition(self, playerNumber=0):
         player = self.playerList[playerNumber]
         return player.getPosition()
+
+    def collisions(self):
+        self.game.isCollisionPlayer()
+        self.game.collisionPlayer1Ball()
+        self.game.collisionPlayer2Ball()

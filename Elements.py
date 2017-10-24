@@ -4,7 +4,7 @@
 
 # Constants
 WINDOW_SIZE = (0, 0, 300, 300)
-BALL_SIZE = 20
+BALL_SIZE = 30
 PLAYER_SIZE = 50
 SPEED_INCREASE = 10
 SPEED_DECREASE = 1
@@ -28,8 +28,9 @@ class Base(object):
         self.speedDecrease = SPEED_DECREASE
         self.rebond = True
 
-    def _speedReduction(self):
+    def _speedUpdate(self):
         self.ySpeed += self.gravity
+
         if abs(self.xSpeed) >= SPEED_DECREASE:
             if self.xSpeed > 0:
                 self.xSpeed -= self.speedDecrease
@@ -39,24 +40,38 @@ class Base(object):
             self.xSpeed = 0
 
     def _rebond(self):
-        if self.rebond and self.y >= WINDOW_SIZE[-1] - self.size:
+        if self.rebond:
             self.ySpeed = - COEF_REBOND*self.ySpeed
-            if abs(self.ySpeed) < 0.6*self.size:
-                self.ySpeed = 0
+        else:
+            self.ySpeed = 0
 
     def updateXYPosition(self):
-        self._speedReduction()
-        self._rebond()
+        """
+        we update the base position based on the speed of the object
+        """
         self.y += self.ySpeed
         self.x += self.xSpeed
+        self._speedUpdate()
+
         if self.y < 0:
             self.y = 0
-        elif self.y > WINDOW_SIZE[-1] - self.size:
+            self.ySpeed = 0
+
+        if self.y > WINDOW_SIZE[-1] - self.size:
             self.y = WINDOW_SIZE[-1] - self.size
+            self._rebond()
+
         if self.x < 0:
             self.x = 0
-        elif self.x > WINDOW_SIZE[-2] - self.size:
+            self.xSpeed = 0
+
+        if self.x > WINDOW_SIZE[-2] - self.size:
             self.x = WINDOW_SIZE[-2] - self.size
+            self.xSpeed = 0
+
+    def setPosition(self, x, y):
+        self.x = x
+        self.y = y
 
     def setColor(self, tupleColor):
         """
@@ -98,15 +113,10 @@ class Player(Base):
         self.rebond = False
 
     def moveLeft(self):
-        if self.x > 0:
             self.xSpeed -= self.speedIncrease
 
     def moveRight(self):
-        if self.x < WINDOW_SIZE[-1] - self.size:
             self.xSpeed += self.speedIncrease
 
     def jump(self):
         self.ySpeed = self.jumpHeight
-        self.y += self.ySpeed
-        if self.y <= 0:
-            self.ySpeed = 0
