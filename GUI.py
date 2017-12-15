@@ -16,10 +16,12 @@ import traceback
 def excepthook(type_, value, traceback_):
     traceback.print_exception(type_, value, traceback_)
     qFatal('')
+
+
 sys.excepthook = excepthook
 
 # Constants
-TIMER_REFRESH_SPEED = 50
+TIMER_REFRESH_SPEED = 60
 
 # class
 

@@ -50,7 +50,7 @@ class Controller(ControllerBase):
         return self.playerList
 
     def getPlayerPosition(self, player):
-        player.updateXYPosition()
+        player.updateXYPosition(verbose=2)
         return(player.getX(), player.getY())
 
     def getStringPlayerPosition(self, playerNumber=0):
