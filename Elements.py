@@ -3,9 +3,9 @@
 # import
 
 # Constants
-WINDOW_SIZE = (0, 0, 300, 300)
-BALL_SIZE = 30
-PLAYER_SIZE = 50
+WINDOW_SIZE = (0, 0, 1000, 600)
+BALL_SIZE = 50
+PLAYER_SIZE = 75
 SPEED_INCREASE = 10
 SPEED_DECREASE = 1
 GRAVITY_BALL = 5
@@ -27,9 +27,11 @@ class Base(object):
         self.speedIncrease = SPEED_INCREASE
         self.speedDecrease = SPEED_DECREASE
         self.rebond = True
+        self.debug = True
 
     def _speedUpdate(self):
-        self.ySpeed += self.gravity
+        if self.y < WINDOW_SIZE[-1] - self.size:
+            self.ySpeed += self.gravity
 
         if abs(self.xSpeed) >= SPEED_DECREASE:
             if self.xSpeed > 0:
@@ -39,35 +41,65 @@ class Base(object):
         else:
             self.xSpeed = 0
 
-    def _rebond(self):
-        if self.rebond:
+    def _rebondY(self, verbose=0):
+        if self.debug and verbose > 0:
+            print("speed before Ybounce: {}".format(self.ySpeed))
+        if self.rebond and self.ySpeed > 0.5*self.size:
             self.ySpeed = - COEF_REBOND*self.ySpeed
         else:
             self.ySpeed = 0
 
-    def updateXYPosition(self):
+    def _rebondX(self, verbose=0):
+        if self.debug and verbose > 0:
+            print("speed before Xbounce: {}".format(self.xSpeed))
+        if self.rebond:
+            self.xSpeed = - COEF_REBOND*self.xSpeed
+        else:
+            self.xSpeed = 0
+
+    def updateXYPosition(self, verbose=0):
         """
         we update the base position based on the speed of the object
         """
+        if self.debug and verbose > 0:
+            print("x: {} | y: {}".format(self.x, self.y))
+            print("xSpeed: {} | ySpeed: {}".format(self.xSpeed, self.ySpeed))
+            print("---")
         self.y += self.ySpeed
         self.x += self.xSpeed
-        self._speedUpdate()
 
-        if self.y < 0:
+        if self.y <= 0:
+            if self.debug and verbose > 1:
+                print("ceiling collision")
             self.y = 0
             self.ySpeed = 0
 
-        if self.y > WINDOW_SIZE[-1] - self.size:
+        if self.y >= WINDOW_SIZE[-1] - self.size:
+            if self.debug and verbose > 1:
+                print("floor collision")
             self.y = WINDOW_SIZE[-1] - self.size
-            self._rebond()
+            self._rebondY()
 
-        if self.x < 0:
+        if self.x <= 0:
             self.x = 0
-            self.xSpeed = 0
+            self._rebondX()
 
-        if self.x > WINDOW_SIZE[-2] - self.size:
+        if self.x >= WINDOW_SIZE[-2] - self.size:
             self.x = WINDOW_SIZE[-2] - self.size
-            self.xSpeed = 0
+            self._rebondX()
+
+        if self.debug and verbose > 1:
+            print("correct pos | x: {} | y: {}".format(self.x, self.y))
+            print("correct speed | xSpeed: {} | ySpeed: {}".format(self.xSpeed,
+                  self.ySpeed))
+            print("---")
+
+        self._speedUpdate()
+        if self.debug and verbose > 1:
+            print("pos update | x: {} | y: {}".format(self.x, self.y))
+            print("speed update | xSpeed: {} | ySpeed: {}".format(self.xSpeed,
+                  self.ySpeed))
+            print("||||||||||||||||||||||||||||||||||||||||")
 
     def setPosition(self, x, y):
         self.x = x
@@ -111,6 +143,7 @@ class Player(Base):
         self.jumpHeight = JUMP_HEIGHT
         self.size = PLAYER_SIZE
         self.rebond = False
+        self.debug = False
 
     def moveLeft(self):
             self.xSpeed -= self.speedIncrease

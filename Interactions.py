@@ -4,8 +4,7 @@
 import numpy as np
 
 # constant
-SPEED_ATTENUATION = 1
-
+COEFF_UP_SPEED = 2
 # class
 
 
@@ -13,7 +12,7 @@ class Interactions(object):
     def __init__(self):
         pass
 
-    def isCollision(base1, base2):
+    def isCollision(self, base1, base2):
         """
         throw True if there is a collision between 2 objects of class Base
         """
@@ -29,20 +28,26 @@ class Interactions(object):
             b = False
         return b
 
-    def ballSpeedAfterCollision(base, player):
+    def ballSpeedAfterCollision(self, base, player):
         """
-        calculate the new speed of the ball after a collision with a player
+        compute the new speed of the ball after a collision with a player
         """
-        normalizationDistance = base.getSize() + player.getSize()
-        coeffSpeedX = abs(base.getX() - player.getX()) / normalizationDistance
-        print("coef x: {}".format(coeffSpeedX))
-        coeffSpeedY = abs(base.getY() - player.getY()) / normalizationDistance
-        print("coef y: {}".format(coeffSpeedY))
+        normalizationDistance = base.getSize()/2 + player.getSize()/2
+        coeffSpeedX = (base.getX() - player.getX()) / normalizationDistance
+        coeffSpeedY = (base.getY() - player.getY()) / normalizationDistance
         playerXSpeed, playerYSpeed = player.getSpeed()
-        print("player speed: {}".format(playerXSpeed, playerYSpeed))
-        ballXSpeed = -SPEED_ATTENUATION*base.getSpeed()[0] + \
-            playerXSpeed*coeffSpeedX
-        ballYSpeed = -SPEED_ATTENUATION*base.getSpeed()[1] + \
-            playerYSpeed*coeffSpeedY
-        print("ball speed: {} {}".format(ballXSpeed, ballYSpeed))
+        ballXSpeed, ballYSpeed = base.getSpeed()
+        energy = self.computeEnergy(playerXSpeed, playerYSpeed) + \
+            self.computeEnergy(ballXSpeed, ballYSpeed)
+        ballXSpeed = energy*coeffSpeedX
+        ballYSpeed = COEFF_UP_SPEED*energy*coeffSpeedY
         base.setSpeed(ballXSpeed, ballYSpeed)
+        if base.debug:
+            print("ballspeed aft. coll.: {} {}".format(ballXSpeed, ballYSpeed))
+
+    def computeEnergy(self, baseSpeedX, baseSpeedY):
+        """
+        compute the energy of an object based on it's speed
+        """
+        energy = np.sqrt(baseSpeedX**2 + baseSpeedY**2)
+        return energy
