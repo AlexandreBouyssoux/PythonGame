@@ -28,15 +28,20 @@ class Game(object):
     def getElements(self):
         return(self.player1, self.player2, self.ball)
 
-    def isCollisionPlayer(self):
-        if self.inter.isCollision(self.player1, self.player2):
-            print("collision joueur")
-        return self.inter.isCollision(self.player1, self.player2)
+    def isCollisionPlayer(self, verbose=0):
+        if self.inter.isCollision(self.player1, self.player2, verbose):
+            if verbose > 0:
+                print("collision player1 w player2")
+            self.inter.playerBehaviorAfterCollision(self.player1, self.player2)
 
-    def collisionPlayer1Ball(self):
-        if self.inter.isCollision(self.player1, self.ball):
+    def collisionPlayer1Ball(self, verbose=0):
+        if self.inter.isCollision(self.player1, self.ball, verbose):
+            if verbose > 0:
+                print("collision player1 w ball")
             self.inter.ballSpeedAfterCollision(self.ball, self.player1)
 
-    def collisionPlayer2Ball(self):
-        if self.inter.isCollision(self.player2, self.ball):
+    def collisionPlayer2Ball(self, verbose=0):
+        if self.inter.isCollision(self.player2, self.ball, verbose):
+            if verbose > 0:
+                print("collision player2 w ball")
             self.inter.ballSpeedAfterCollision(self.ball, self.player2)

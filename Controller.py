@@ -50,7 +50,7 @@ class Controller(ControllerBase):
         return self.playerList
 
     def getPlayerPosition(self, player):
-        player.updateXYPosition(verbose=2)
+        player.updateXYPosition(verbose=0)
         return(player.getX(), player.getY())
 
     def getStringPlayerPosition(self, playerNumber=0):
@@ -58,6 +58,6 @@ class Controller(ControllerBase):
         return player.getPosition()
 
     def collisions(self):
-        self.game.isCollisionPlayer()
-        self.game.collisionPlayer1Ball()
-        self.game.collisionPlayer2Ball()
+        self.game.isCollisionPlayer(verbose=1)
+        self.game.collisionPlayer1Ball(verbose=1)
+        self.game.collisionPlayer2Ball(verbose=1)
