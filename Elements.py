@@ -12,6 +12,8 @@ GRAVITY_BALL = 5
 GRAVITY_PLAYER = 8
 JUMP_HEIGHT = - 30
 COEF_REBOND = 0.5
+CAGE_W = 100
+CAGE_H = 250
 # Class
 
 
@@ -142,6 +144,7 @@ class Player(Base):
         self.gravity = GRAVITY_PLAYER
         self.jumpHeight = JUMP_HEIGHT
         self.size = PLAYER_SIZE
+        self.score = 0
         self.rebond = False
         self.debug = False
 
@@ -153,3 +156,29 @@ class Player(Base):
 
     def jump(self):
         self.ySpeed = self.jumpHeight
+
+    def scores(self):
+        self.score += 1
+
+    def getScore(self):
+        return(self.score)
+
+
+class Box(object):
+    def __init__(self, w, h, upRightCornerPos=(0, 0), color=(0, 0, 0)):
+        self.upRightCorner = upRightCornerPos
+        self.h = h
+        self.w = w
+        self.color = (0, 0, 0)
+
+    def setPosition(self, x, y):
+        self.upRightCorner = (x, y)
+
+    def setW(self, w):
+        self.w = w
+
+    def setH(self, h):
+        self.h = h
+
+    def setColor(self, colorTuple):
+        self.color = colorTuple

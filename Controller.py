@@ -26,6 +26,7 @@ class Controller(ControllerBase):
         self.WINDOW_SIZE = Game.WINDOW_SIZE
         self.game = Game.Game()
         self.playerList = self.game.getElements()
+        self.cageList = self.game.getStaticElements()
 
     def getPlayerInformations(self, player):
         return(player.getX(), player.getY(), player.getSize(),
@@ -57,7 +58,11 @@ class Controller(ControllerBase):
         player = self.playerList[playerNumber]
         return player.getPosition()
 
+    def getCageList(self):
+        return(self.cageList)
+
     def collisions(self):
         self.game.isCollisionPlayer(verbose=1)
         self.game.collisionPlayer1Ball(verbose=1)
         self.game.collisionPlayer2Ball(verbose=1)
+        self.game.goal(verbose=1)

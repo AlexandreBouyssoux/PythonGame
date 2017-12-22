@@ -51,6 +51,11 @@ class GraphicScene(QGraphicsScene):
         self.timer = timer
         self.setSceneRect(*self.c.WINDOW_SIZE)
 
+        for cage in self.c.getCageList():
+            pen = QPen(QColor(0, 0, 0), 1, Qt.DotLine)
+            brush = QBrush(QColor(*cage.color), Qt.SolidPattern)
+            self.addRect(*cage.upRightCorner, cage.w, cage.h, pen, brush)
+
         self.dictEllipse = {}
         for player in self.c.getPlayerList():
             playerX, playerY, playerSize, playerColor = \

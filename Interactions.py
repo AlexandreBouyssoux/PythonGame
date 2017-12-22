@@ -73,3 +73,21 @@ class Interactions(object):
         player1.ySpeed *= PLAYER_BOUNCING_BACK
         player2.xSpeed *= PLAYER_BOUNCING_BACK
         player2.ySpeed *= PLAYER_BOUNCING_BACK
+
+    def isBallintoCage(self, cage, ball):
+        xMin = cage.upRightCorner[0]
+        xMax = xMin + cage.w
+        yMin = cage.upRightCorner[1]
+        yMax = yMin + cage.h
+        collision = False
+        x = ball.getX()
+        y = ball.getY()
+        if x >= xMin and x <= xMax and y >= yMin and y <= yMax:
+            collision = True
+        return collision
+
+    def isCollisionWithBox(self, box, base):
+        pass
+
+    def baseBehaviorAfterBoxCollision(self, box, base):
+        pass
