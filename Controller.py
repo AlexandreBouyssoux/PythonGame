@@ -65,4 +65,5 @@ class Controller(ControllerBase):
         self.game.isCollisionPlayer(verbose=1)
         self.game.collisionPlayer1Ball(verbose=1)
         self.game.collisionPlayer2Ball(verbose=1)
+        self.game.collisionWithBox(verbose=1)
         self.game.goal(verbose=1)

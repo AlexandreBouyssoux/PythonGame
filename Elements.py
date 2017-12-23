@@ -43,7 +43,7 @@ class Base(object):
         else:
             self.xSpeed = 0
 
-    def _rebondY(self, verbose=0):
+    def rebondY(self, verbose=0):
         if self.debug and verbose > 0:
             print("speed before Ybounce: {}".format(self.ySpeed))
         if self.rebond and self.ySpeed > 0.5*self.size:
@@ -51,7 +51,7 @@ class Base(object):
         else:
             self.ySpeed = 0
 
-    def _rebondX(self, verbose=0):
+    def rebondX(self, verbose=0):
         if self.debug and verbose > 0:
             print("speed before Xbounce: {}".format(self.xSpeed))
         if self.rebond:
@@ -80,15 +80,15 @@ class Base(object):
             if self.debug and verbose > 1:
                 print("floor collision")
             self.y = WINDOW_SIZE[-1] - self.size
-            self._rebondY()
+            self.rebondY()
 
         if self.x <= 0:
             self.x = 0
-            self._rebondX()
+            self.rebondX()
 
         if self.x >= WINDOW_SIZE[-2] - self.size:
             self.x = WINDOW_SIZE[-2] - self.size
-            self._rebondX()
+            self.rebondX()
 
         if self.debug and verbose > 1:
             print("correct pos | x: {} | y: {}".format(self.x, self.y))

@@ -86,8 +86,44 @@ class Interactions(object):
             collision = True
         return collision
 
-    def isCollisionWithBox(self, box, base):
-        pass
+    def collisionWithBox(self, box, base, verbose=0):
+        x1 = box.upRightCorner[0] - base.size
+        x2 = box.upRightCorner[0]
+        x3 = box.upRightCorner[0] + box.w
+        x4 = box.upRightCorner[0] + box.w + base.size
+        yMin = box.upRightCorner[1] - base.size
+        yMid = box.upRightCorner[1] + box.h/2
+        yMax = box.upRightCorner[1] + box.h + base.size
+        x = base.getX()
+        y = base.getY()
+        if verbose > 0:
+            print("----------------------------------------")
+            print("box w {} | box h {}".format(box.w, box.h))
+            print("dif yMax - yMin = {}".format(yMax - yMin))
+            print("----------------------------------------")
 
-    def baseBehaviorAfterBoxCollision(self, box, base):
-        pass
+        if x >= x1 and x < x2:
+            if y > yMin and y < yMax:
+                if verbose > 0:
+                    print("collision with front goal box")
+                base.x = x1
+                base.rebondX()
+
+        elif x >= x2 and x < x3:
+            if y > yMin and y < yMid:
+                if verbose > 0:
+                    print("collision over plain goal box")
+                base.y = yMin
+                base.rebondY()
+            elif y > yMid and y < yMax:
+                if verbose > 0:
+                    print("collision under plain goal box")
+                base.y = yMax
+                base.rebondY()
+
+        elif x > x3 and x < x4:
+            if y >= yMin and y < yMax:
+                if verbose > 0:
+                    print("collision with end goal box")
+                base.y = x4
+                base.rebondX()

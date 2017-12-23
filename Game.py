@@ -6,6 +6,7 @@ import Interactions
 
 # constants
 WINDOW_SIZE = Elts.WINDOW_SIZE
+CAGE_BOX_H = 10
 
 # class
 
@@ -32,6 +33,15 @@ class Game(object):
                                                 Elts.WINDOW_SIZE[-1] -
                                                 Elts.CAGE_H))
         self.cage2.setColor((0, 255, 0))
+
+        self.cageBox1 = Elts.Box(Elts.CAGE_W, CAGE_BOX_H, upRightCornerPos=(
+                self.cage1.upRightCorner[0], self.cage1.upRightCorner[1] -
+                CAGE_BOX_H))
+
+        self.cageBox2 = Elts.Box(Elts.CAGE_W, CAGE_BOX_H, upRightCornerPos=(
+                self.cage2.upRightCorner[0], self.cage2.upRightCorner[1] -
+                CAGE_BOX_H))
+
         self.setGame()
 
     def setGame(self):
@@ -50,7 +60,10 @@ class Game(object):
         return(self.player1, self.player2, self.ball)
 
     def getStaticElements(self):
-        return(self.cage1, self.cage2)
+        return(self.cage1, self.cage2, self.cageBox1, self.cageBox2)
+
+    def getBoxes(self):
+        return(self.cageBox1, self.cageBox2)
 
     def getScore(self):
         return(self.player1.score, self.player2.score)
@@ -72,6 +85,11 @@ class Game(object):
             if verbose > 0:
                 print("collision player2 w ball")
             self.inter.ballSpeedAfterCollision(self.ball, self.player2)
+
+    def collisionWithBox(self, verbose=0):
+        for box in self.getBoxes():
+            for base in self.getElements():
+                self.inter.collisionWithBox(box, base, verbose)
 
     def goal(self, verbose=0):
         if self.inter.isBallintoCage(self.cage1, self.ball):
