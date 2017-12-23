@@ -7,11 +7,15 @@ WINDOW_SIZE = (0, 0, 1000, 600)
 BALL_SIZE = 50
 PLAYER_SIZE = 75
 SPEED_INCREASE = 10
-SPEED_DECREASE = 1
+SPEED_DECREASE = 0.5
 GRAVITY_BALL = 5
 GRAVITY_PLAYER = 8
 JUMP_HEIGHT = - 30
 COEF_REBOND = 0.5
+CAGE_W = 100
+CAGE_H = 250
+CAGE_BOX_H = 30
+MAX_SPEED = 30
 # Class
 
 
@@ -20,6 +24,7 @@ class Base(object):
         self.x = 0
         self.y = 0
         self.size = BALL_SIZE
+        self.drawPoint = (self.x - self.size/2, self.y - self.size/2)
         self.color = (0, 0, 0)
         self.xSpeed = 0
         self.ySpeed = 0
@@ -29,8 +34,19 @@ class Base(object):
         self.rebond = True
         self.debug = True
 
+    def _applyGravity(self):
+        applyGravity = True
+        if self.y == WINDOW_SIZE[-1] - self.size/2:
+            applyGravity = False
+        if self.y == WINDOW_SIZE[-1] - CAGE_H - CAGE_BOX_H - self.size/2:
+            if self.x <= CAGE_W:
+                applyGravity = False
+            elif self.x >= WINDOW_SIZE[-2] - CAGE_W:
+                applyGravity = False
+        return applyGravity
+
     def _speedUpdate(self):
-        if self.y < WINDOW_SIZE[-1] - self.size:
+        if self._applyGravity():
             self.ySpeed += self.gravity
 
         if abs(self.xSpeed) >= SPEED_DECREASE:
@@ -41,7 +57,7 @@ class Base(object):
         else:
             self.xSpeed = 0
 
-    def _rebondY(self, verbose=0):
+    def rebondY(self, verbose=0):
         if self.debug and verbose > 0:
             print("speed before Ybounce: {}".format(self.ySpeed))
         if self.rebond and self.ySpeed > 0.5*self.size:
@@ -49,7 +65,7 @@ class Base(object):
         else:
             self.ySpeed = 0
 
-    def _rebondX(self, verbose=0):
+    def rebondX(self, verbose=0):
         if self.debug and verbose > 0:
             print("speed before Xbounce: {}".format(self.xSpeed))
         if self.rebond:
@@ -68,25 +84,25 @@ class Base(object):
         self.y += self.ySpeed
         self.x += self.xSpeed
 
-        if self.y <= 0:
+        if self.y <= self.size/2:
             if self.debug and verbose > 1:
                 print("ceiling collision")
-            self.y = 0
+            self.y = self.size/2
             self.ySpeed = 0
 
-        if self.y >= WINDOW_SIZE[-1] - self.size:
+        if self.y >= WINDOW_SIZE[-1] - self.size/2:
             if self.debug and verbose > 1:
                 print("floor collision")
-            self.y = WINDOW_SIZE[-1] - self.size
-            self._rebondY()
+            self.y = WINDOW_SIZE[-1] - self.size/2
+            self.rebondY()
 
-        if self.x <= 0:
-            self.x = 0
-            self._rebondX()
+        if self.x <= self.size/2:
+            self.x = self.size/2
+            self.rebondX()
 
-        if self.x >= WINDOW_SIZE[-2] - self.size:
-            self.x = WINDOW_SIZE[-2] - self.size
-            self._rebondX()
+        if self.x >= WINDOW_SIZE[-2] - self.size/2:
+            self.x = WINDOW_SIZE[-2] - self.size/2
+            self.rebondX()
 
         if self.debug and verbose > 1:
             print("correct pos | x: {} | y: {}".format(self.x, self.y))
@@ -122,6 +138,10 @@ class Base(object):
     def getY(self):
         return self.y
 
+    def getDrawPoint(self):
+        self.drawPoint = (self.x - self.size/2, self.y - self.size/2)
+        return(self.drawPoint)
+
     def getSize(self):
         return self.size
 
@@ -131,10 +151,6 @@ class Base(object):
     def getSpeed(self):
         return(self.xSpeed, self.ySpeed)
 
-    def getPosition(self):
-        return("x: {} y: {} xspeed: {} yspeed: {}".format(self.x, self.y,
-               self.xSpeed, self.ySpeed))
-
 
 class Player(Base):
     def __init__(self):
@@ -142,14 +158,48 @@ class Player(Base):
         self.gravity = GRAVITY_PLAYER
         self.jumpHeight = JUMP_HEIGHT
         self.size = PLAYER_SIZE
+        self.score = 0
+        self.maxSpeed = MAX_SPEED
         self.rebond = False
         self.debug = False
 
     def moveLeft(self):
             self.xSpeed -= self.speedIncrease
+            if abs(self.xSpeed) > self.maxSpeed:
+                self.xSpeed = - self.maxSpeed
 
     def moveRight(self):
             self.xSpeed += self.speedIncrease
+            if abs(self.xSpeed) > self.maxSpeed:
+                self.xSpeed = self.maxSpeed
 
     def jump(self):
         self.ySpeed = self.jumpHeight
+        if abs(self.ySpeed) > self.maxSpeed:
+            self.ySpeed = self.maxSpeed
+
+    def scores(self):
+        self.score += 1
+
+    def getScore(self):
+        return(self.score)
+
+
+class Box(object):
+    def __init__(self, w, h, upRightCornerPos=(0, 0), color=(0, 0, 0)):
+        self.upRightCorner = upRightCornerPos
+        self.h = h
+        self.w = w
+        self.color = (0, 0, 0)
+
+    def setPosition(self, x, y):
+        self.upRightCorner = (x, y)
+
+    def setW(self, w):
+        self.w = w
+
+    def setH(self, h):
+        self.h = h
+
+    def setColor(self, colorTuple):
+        self.color = colorTuple

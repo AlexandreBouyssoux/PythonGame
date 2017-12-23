@@ -51,6 +51,11 @@ class GraphicScene(QGraphicsScene):
         self.timer = timer
         self.setSceneRect(*self.c.WINDOW_SIZE)
 
+        for cage in self.c.getCageList():
+            pen = QPen(QColor(0, 0, 0), 1, Qt.DotLine)
+            brush = QBrush(QColor(*cage.color), Qt.SolidPattern)
+            self.addRect(*cage.upRightCorner, cage.w, cage.h, pen, brush)
+
         self.dictEllipse = {}
         for player in self.c.getPlayerList():
             playerX, playerY, playerSize, playerColor = \
@@ -72,32 +77,26 @@ class GraphicScene(QGraphicsScene):
         if event.key() == Qt.Key_Up:
             self.c.movePlayer("jump", 0)
             self.c.refresh()
-            print(self.c.getStringPlayerPosition(0))
 
         elif event.key() == Qt.Key_Left:
             self.c.movePlayer("left", 0)
             self.c.refresh()
-            print(self.c.getStringPlayerPosition(0))
 
         elif event.key() == Qt.Key_Right:
             self.c.movePlayer("right", 0)
             self.c.refresh()
-            print(self.c.getStringPlayerPosition(0))
 
         if event.key() == Qt.Key_Z:
             self.c.movePlayer("jump", 1)
             self.c.refresh()
-            print(self.c.getStringPlayerPosition(1))
 
         elif event.key() == Qt.Key_Q:
             self.c.movePlayer("left", 1)
             self.c.refresh()
-            print(self.c.getStringPlayerPosition(1))
 
         elif event.key() == Qt.Key_D:
             self.c.movePlayer("right", 1)
             self.c.refresh()
-            print(self.c.getStringPlayerPosition(1))
 
     def refresh(self):
         self.c.collisions()

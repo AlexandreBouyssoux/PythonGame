@@ -26,9 +26,11 @@ class Controller(ControllerBase):
         self.WINDOW_SIZE = Game.WINDOW_SIZE
         self.game = Game.Game()
         self.playerList = self.game.getElements()
+        self.cageList = self.game.getStaticElements()
 
     def getPlayerInformations(self, player):
-        return(player.getX(), player.getY(), player.getSize(),
+        drawPoint = player.getDrawPoint()
+        return(drawPoint[0], drawPoint[1], player.getSize(),
                player.getColor())
 
     def movePlayer(self, direction, playerNumber=0):
@@ -50,14 +52,16 @@ class Controller(ControllerBase):
         return self.playerList
 
     def getPlayerPosition(self, player):
-        player.updateXYPosition(verbose=2)
-        return(player.getX(), player.getY())
+        player.updateXYPosition(verbose=0)
+        drawPoint = player.getDrawPoint()
+        return(drawPoint[0], drawPoint[1])
 
-    def getStringPlayerPosition(self, playerNumber=0):
-        player = self.playerList[playerNumber]
-        return player.getPosition()
+    def getCageList(self):
+        return(self.cageList)
 
     def collisions(self):
-        self.game.isCollisionPlayer()
-        self.game.collisionPlayer1Ball()
-        self.game.collisionPlayer2Ball()
+        self.game.isCollisionPlayer(verbose=1)
+        self.game.collisionPlayer1Ball(verbose=1)
+        self.game.collisionPlayer2Ball(verbose=1)
+        self.game.collisionWithBox(verbose=1)
+        self.game.goal(verbose=1)
