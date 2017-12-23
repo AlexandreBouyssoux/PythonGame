@@ -7,7 +7,7 @@ WINDOW_SIZE = (0, 0, 1000, 600)
 BALL_SIZE = 50
 PLAYER_SIZE = 75
 SPEED_INCREASE = 10
-SPEED_DECREASE = 1
+SPEED_DECREASE = 0.5
 GRAVITY_BALL = 5
 GRAVITY_PLAYER = 8
 JUMP_HEIGHT = - 30
@@ -15,6 +15,7 @@ COEF_REBOND = 0.5
 CAGE_W = 100
 CAGE_H = 250
 CAGE_BOX_H = 30
+MAX_SPEED = 30
 # Class
 
 
@@ -158,17 +159,24 @@ class Player(Base):
         self.jumpHeight = JUMP_HEIGHT
         self.size = PLAYER_SIZE
         self.score = 0
+        self.maxSpeed = MAX_SPEED
         self.rebond = False
         self.debug = False
 
     def moveLeft(self):
             self.xSpeed -= self.speedIncrease
+            if abs(self.xSpeed) > self.maxSpeed:
+                self.xSpeed = - self.maxSpeed
 
     def moveRight(self):
             self.xSpeed += self.speedIncrease
+            if abs(self.xSpeed) > self.maxSpeed:
+                self.xSpeed = self.maxSpeed
 
     def jump(self):
         self.ySpeed = self.jumpHeight
+        if abs(self.ySpeed) > self.maxSpeed:
+            self.ySpeed = self.maxSpeed
 
     def scores(self):
         self.score += 1

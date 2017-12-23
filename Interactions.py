@@ -49,6 +49,8 @@ class Interactions(object):
         ballYSpeed = COEFF_UP_SPEED*energy*coeffSpeedY
         base.setSpeed(ballXSpeed, ballYSpeed)
         if base.debug:
+            print("energy: {} | csy {} | csx {}".format(energy, coeffSpeedY,
+                  coeffSpeedX))
             print("ballspeed aft. coll.: {} {}".format(ballXSpeed, ballYSpeed))
 
     def computeEnergy(self, baseSpeedX, baseSpeedY):
