@@ -29,7 +29,8 @@ class Controller(ControllerBase):
         self.cageList = self.game.getStaticElements()
 
     def getPlayerInformations(self, player):
-        return(player.getX(), player.getY(), player.getSize(),
+        drawPoint = player.getDrawPoint()
+        return(drawPoint[0], drawPoint[1], player.getSize(),
                player.getColor())
 
     def movePlayer(self, direction, playerNumber=0):
@@ -52,11 +53,8 @@ class Controller(ControllerBase):
 
     def getPlayerPosition(self, player):
         player.updateXYPosition(verbose=0)
-        return(player.getX(), player.getY())
-
-    def getStringPlayerPosition(self, playerNumber=0):
-        player = self.playerList[playerNumber]
-        return player.getPosition()
+        drawPoint = player.getDrawPoint()
+        return(drawPoint[0], drawPoint[1])
 
     def getCageList(self):
         return(self.cageList)

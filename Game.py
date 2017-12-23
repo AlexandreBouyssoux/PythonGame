@@ -6,7 +6,7 @@ import Interactions
 
 # constants
 WINDOW_SIZE = Elts.WINDOW_SIZE
-CAGE_BOX_H = 10
+CAGE_BOX_H = Elts.CAGE_BOX_H
 
 # class
 

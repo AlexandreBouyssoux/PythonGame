@@ -14,6 +14,7 @@ JUMP_HEIGHT = - 30
 COEF_REBOND = 0.5
 CAGE_W = 100
 CAGE_H = 250
+CAGE_BOX_H = 30
 # Class
 
 
@@ -22,6 +23,7 @@ class Base(object):
         self.x = 0
         self.y = 0
         self.size = BALL_SIZE
+        self.drawPoint = (self.x - self.size/2, self.y - self.size/2)
         self.color = (0, 0, 0)
         self.xSpeed = 0
         self.ySpeed = 0
@@ -31,8 +33,19 @@ class Base(object):
         self.rebond = True
         self.debug = True
 
+    def _applyGravity(self):
+        applyGravity = True
+        if self.y == WINDOW_SIZE[-1] - self.size/2:
+            applyGravity = False
+        if self.y == WINDOW_SIZE[-1] - CAGE_H - CAGE_BOX_H - self.size/2:
+            if self.x <= CAGE_W:
+                applyGravity = False
+            elif self.x >= WINDOW_SIZE[-2] - CAGE_W:
+                applyGravity = False
+        return applyGravity
+
     def _speedUpdate(self):
-        if self.y < WINDOW_SIZE[-1] - self.size:
+        if self._applyGravity():
             self.ySpeed += self.gravity
 
         if abs(self.xSpeed) >= SPEED_DECREASE:
@@ -70,24 +83,24 @@ class Base(object):
         self.y += self.ySpeed
         self.x += self.xSpeed
 
-        if self.y <= 0:
+        if self.y <= self.size/2:
             if self.debug and verbose > 1:
                 print("ceiling collision")
-            self.y = 0
+            self.y = self.size/2
             self.ySpeed = 0
 
-        if self.y >= WINDOW_SIZE[-1] - self.size:
+        if self.y >= WINDOW_SIZE[-1] - self.size/2:
             if self.debug and verbose > 1:
                 print("floor collision")
-            self.y = WINDOW_SIZE[-1] - self.size
+            self.y = WINDOW_SIZE[-1] - self.size/2
             self.rebondY()
 
-        if self.x <= 0:
-            self.x = 0
+        if self.x <= self.size/2:
+            self.x = self.size/2
             self.rebondX()
 
-        if self.x >= WINDOW_SIZE[-2] - self.size:
-            self.x = WINDOW_SIZE[-2] - self.size
+        if self.x >= WINDOW_SIZE[-2] - self.size/2:
+            self.x = WINDOW_SIZE[-2] - self.size/2
             self.rebondX()
 
         if self.debug and verbose > 1:
@@ -124,6 +137,10 @@ class Base(object):
     def getY(self):
         return self.y
 
+    def getDrawPoint(self):
+        self.drawPoint = (self.x - self.size/2, self.y - self.size/2)
+        return(self.drawPoint)
+
     def getSize(self):
         return self.size
 
@@ -132,10 +149,6 @@ class Base(object):
 
     def getSpeed(self):
         return(self.xSpeed, self.ySpeed)
-
-    def getPosition(self):
-        return("x: {} y: {} xspeed: {} yspeed: {}".format(self.x, self.y,
-               self.xSpeed, self.ySpeed))
 
 
 class Player(Base):

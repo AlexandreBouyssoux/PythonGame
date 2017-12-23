@@ -23,11 +23,8 @@ class Interactions(object):
         diffY = base1.getY() - base2.getY()
         # distance is real desitance between center of objects
         distance = np.sqrt(diffX**2 + diffY**2)
-        # distance threshold : we take different bounding boxes for the ball
-        if type(base1) == type(base2):
-            distanceThreshold = base1.size/2 + base2.size/2 + 5
-        else:
-            distanceThreshold = 3*base1.size/4 + 3*base2.size/4
+
+        distanceThreshold = base1.size/2 + base2.size/2
         if distance < distanceThreshold:
             if verbose > 0:
                 print("distance: {} | Base1size: {} | Base2size: {}".format(
@@ -87,16 +84,16 @@ class Interactions(object):
         return collision
 
     def collisionWithBox(self, box, base, verbose=0):
-        x1 = box.upRightCorner[0] - base.size
+        x1 = box.upRightCorner[0] - base.size/2
         x2 = box.upRightCorner[0]
         x3 = box.upRightCorner[0] + box.w
-        x4 = box.upRightCorner[0] + box.w + base.size
-        yMin = box.upRightCorner[1] - base.size
+        x4 = box.upRightCorner[0] + box.w + base.size/2
+        yMin = box.upRightCorner[1] - base.size/2
         yMid = box.upRightCorner[1] + box.h/2
-        yMax = box.upRightCorner[1] + box.h + base.size
+        yMax = box.upRightCorner[1] + box.h + base.size/2
         x = base.getX()
         y = base.getY()
-        if verbose > 0:
+        if verbose > 1:
             print("----------------------------------------")
             print("box w {} | box h {}".format(box.w, box.h))
             print("dif yMax - yMin = {}".format(yMax - yMin))
@@ -121,9 +118,9 @@ class Interactions(object):
                 base.y = yMax
                 base.rebondY()
 
-        elif x > x3 and x < x4:
+        elif x >= x3 and x <= x4:
             if y >= yMin and y < yMax:
                 if verbose > 0:
                     print("collision with end goal box")
-                base.y = x4
+                base.x = x4
                 base.rebondX()
