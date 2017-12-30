@@ -155,6 +155,7 @@ class Base(object):
 class Player(Base):
     def __init__(self):
         super().__init__()
+        self.name = None
         self.gravity = GRAVITY_PLAYER
         self.jumpHeight = JUMP_HEIGHT
         self.size = PLAYER_SIZE
@@ -162,6 +163,9 @@ class Player(Base):
         self.maxSpeed = MAX_SPEED
         self.rebond = False
         self.debug = False
+
+    def setName(self, name):
+        self.name = name
 
     def moveLeft(self):
             self.xSpeed -= self.speedIncrease

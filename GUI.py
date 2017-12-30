@@ -20,9 +20,6 @@ def excepthook(type_, value, traceback_):
 
 sys.excepthook = excepthook
 
-# Constants
-TIMER_REFRESH_SPEED = 60
-
 # class
 
 
@@ -68,7 +65,7 @@ class GraphicScene(QGraphicsScene):
 
         self.c.refresh()
         self.timer.timeout.connect(self.updateTimer)
-        self.timer.start(TIMER_REFRESH_SPEED)
+        self.timer.start(self.c.game.gameTick)
 
     def updateTimer(self):
         self.c.refresh()
@@ -103,6 +100,8 @@ class GraphicScene(QGraphicsScene):
         for player in self.c.getPlayerList():
             playerX, playerY = self.c.getPlayerPosition(player)
             self.dictEllipse[player].setPos(playerX, playerY)
+        self.c.updateTime()
+        self.c.checkEndOfGame()
 
 # launch the GUI
 

@@ -27,6 +27,7 @@ class Controller(ControllerBase):
         self.game = Game.Game()
         self.playerList = self.game.getElements()
         self.cageList = self.game.getStaticElements()
+        self.time = 0
 
     def getPlayerInformations(self, player):
         drawPoint = player.getDrawPoint()
@@ -65,3 +66,9 @@ class Controller(ControllerBase):
         self.game.collisionPlayer2Ball(verbose=1)
         self.game.collisionWithBox(verbose=1)
         self.game.goal(verbose=1)
+
+    def updateTime(self):
+        self.time += self.game.gameTick
+
+    def checkEndOfGame(self):
+        self.game.isGameOver(self.time)

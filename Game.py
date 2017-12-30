@@ -1,12 +1,17 @@
 # -*- coding: utf-8 -*-
 
 # import
+import sys
 import Elements as Elts
 import Interactions
 
 # constants
 WINDOW_SIZE = Elts.WINDOW_SIZE
 CAGE_BOX_H = Elts.CAGE_BOX_H
+GAME_TIME = 2*60000
+GAME_TICK = 60
+GAME_MODES = ["First to 10", "Best in 2 min"]
+DEFAULT_GAME_MODE = GAME_MODES[0]
 
 # class
 
@@ -14,10 +19,15 @@ CAGE_BOX_H = Elts.CAGE_BOX_H
 class Game(object):
     def __init__(self):
         self.player1 = Elts.Player()
+        self.player1.setName("Player1")
         self.player2 = Elts.Player()
+        self.player2.setName("Player2")
         self.listPlayer = [self.player1, self.player2]
         self.ball = Elts.Base()
         self.inter = Interactions.Interactions()
+        self.gameTick = GAME_TICK
+        self.gamemode = DEFAULT_GAME_MODE
+        print("gamemode: {}".format(self.gamemode))
 
         self.player1.setColor([0, 0, 255])
         self.player2.setColor([255, 0, 0])
@@ -65,7 +75,10 @@ class Game(object):
     def getBoxes(self):
         return(self.cageBox1, self.cageBox2)
 
-    def getScore(self):
+    def getScore(self, verbose=0):
+        if verbose > 0:
+            print("player1: {} | player2: {}".format(self.player1.score,
+                  self.player2.score))
         return(self.player1.score, self.player2.score)
 
     def isCollisionPlayer(self, verbose=0):
@@ -102,3 +115,32 @@ class Game(object):
             if verbose > 0:
                 print("player1 scores a goal")
             self.setGame()
+
+    def isGameOver(self, time):
+        gamemode = self.gamemode
+        score1, score2 = self.getScore()
+        if gamemode == GAME_MODES[0]:
+            # First player to score 10 goals win the game
+            if score1 == 10:
+                self.gameOver(self.player1.name)
+            elif score2 == 10:
+                self.gameOver(self.player2.name)
+        elif gamemode == GAME_MODES[1]:
+            # player with max score win
+            if time >= GAME_TIME:
+                if score1 > score2:
+                    self.gameOver(self.player1.name)
+                elif score2 > score1:
+                    self.gameOver(self.player2.name)
+                else:
+                    self.gameOver(None)
+
+    def gameOver(self, winner):
+        _, _ = self.getScore(verbose=1)
+        if winner:
+            print("Game over, Winner: {}".format(winner))
+            print("||||||||||||||||||END|||||||||||||||||||")
+        else:
+            print("Game over, It's a draw")
+            print("||||||||||||||||||END|||||||||||||||||||")
+        sys.exit()

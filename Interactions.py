@@ -6,6 +6,8 @@ import numpy as np
 # constant
 COEFF_UP_SPEED = 2
 PLAYER_BOUNCING_BACK = -0.5
+COEFF_BOOST_ENERGY = 1.4
+COEFF_BALL_JUMP_NO_ENERGY = 20
 # class
 
 
@@ -45,8 +47,12 @@ class Interactions(object):
         ballXSpeed, ballYSpeed = base.getSpeed()
         energy = self.computeEnergy(playerXSpeed, playerYSpeed) + \
             self.computeEnergy(ballXSpeed, ballYSpeed)
-        ballXSpeed = energy*coeffSpeedX
-        ballYSpeed = COEFF_UP_SPEED*energy*coeffSpeedY
+        if energy == 0:
+            ballXSpeed = 0
+            ballYSpeed = -COEFF_BALL_JUMP_NO_ENERGY
+        else:
+            ballXSpeed = energy*coeffSpeedX
+            ballYSpeed = COEFF_UP_SPEED*energy*coeffSpeedY
         base.setSpeed(ballXSpeed, ballYSpeed)
         if base.debug:
             print("energy: {} | csy {} | csx {}".format(energy, coeffSpeedY,
@@ -57,7 +63,7 @@ class Interactions(object):
         """
         compute the energy of an object based on it's speed
         """
-        energy = np.sqrt(baseSpeedX**2 + baseSpeedY**2)
+        energy = COEFF_BOOST_ENERGY*np.sqrt(baseSpeedX**2 + baseSpeedY**2)
         return energy
 
     def playerBehaviorAfterCollision(self, player1, player2):
