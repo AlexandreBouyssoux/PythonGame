@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # import
+import sys
 
 # Constants
 WINDOW_SIZE = (0, 0, 1000, 600)
@@ -15,12 +16,16 @@ COEF_REBOND = 0.5
 CAGE_W = 100
 CAGE_H = 250
 CAGE_BOX_H = 30
-MAX_SPEED = 30
+MAX_SPEED = PLAYER_SIZE/2
+PLAYER = "player"
+AI = "ai"
+BALL = "ball"
 # Class
 
 
 class Base(object):
     def __init__(self):
+        self.status = BALL
         self.x = 0
         self.y = 0
         self.size = BALL_SIZE
@@ -31,6 +36,7 @@ class Base(object):
         self.gravity = GRAVITY_BALL
         self.speedIncrease = SPEED_INCREASE
         self.speedDecrease = SPEED_DECREASE
+        self.maxSpeed = MAX_SPEED
         self.rebond = True
         self.debug = True
 
@@ -160,9 +166,15 @@ class Player(Base):
         self.jumpHeight = JUMP_HEIGHT
         self.size = PLAYER_SIZE
         self.score = 0
-        self.maxSpeed = MAX_SPEED
         self.rebond = False
         self.debug = False
+        self.status = PLAYER
+
+    def setStatus(self, status):
+        if status not in [PLAYER, AI]:
+            print("ERROR, invalid status {}".format(status))
+            sys.exit()
+        self.status = status
 
     def setName(self, name):
         self.name = name

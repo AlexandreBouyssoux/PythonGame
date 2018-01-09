@@ -71,31 +71,34 @@ class GraphicScene(QGraphicsScene):
         self.c.refresh()
 
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Up:
-            self.c.movePlayer("jump", 0)
-            self.c.refresh()
+        if not self.c.isAI(0):
+            if event.key() == Qt.Key_Up:
+                self.c.movePlayer(self.c.JUMP, 0)
+                self.c.refresh()
 
-        elif event.key() == Qt.Key_Left:
-            self.c.movePlayer("left", 0)
-            self.c.refresh()
+            if event.key() == Qt.Key_Left:
+                self.c.movePlayer(self.c.LEFT, 0)
+                self.c.refresh()
 
-        elif event.key() == Qt.Key_Right:
-            self.c.movePlayer("right", 0)
-            self.c.refresh()
+            if event.key() == Qt.Key_Right:
+                self.c.movePlayer(self.c.RIGHT, 0)
+                self.c.refresh()
 
-        if event.key() == Qt.Key_Z:
-            self.c.movePlayer("jump", 1)
-            self.c.refresh()
+        if not self.c.isAI(1):
+            if event.key() == Qt.Key_Z:
+                self.c.movePlayer(self.c.JUMP, 1)
+                self.c.refresh()
 
-        elif event.key() == Qt.Key_Q:
-            self.c.movePlayer("left", 1)
-            self.c.refresh()
+            if event.key() == Qt.Key_Q:
+                self.c.movePlayer(self.c.LEFT, 1)
+                self.c.refresh()
 
-        elif event.key() == Qt.Key_D:
-            self.c.movePlayer("right", 1)
-            self.c.refresh()
+            if event.key() == Qt.Key_D:
+                self.c.movePlayer(self.c.RIGHT, 1)
+                self.c.refresh()
 
     def refresh(self):
+        self.c.moveAI()
         self.c.collisions()
         for player in self.c.getPlayerList():
             playerX, playerY = self.c.getPlayerPosition(player)

@@ -12,7 +12,10 @@ GAME_TIME = 2*60000
 GAME_TICK = 60
 GAME_MODES = ["First to 10", "Best in 2 min"]
 DEFAULT_GAME_MODE = GAME_MODES[0]
-
+AI = Elts.AI
+JUMP = "jump"
+LEFT = "left"
+RIGHT = "right"
 # class
 
 
@@ -52,7 +55,12 @@ class Game(object):
                 self.cage2.upRightCorner[0], self.cage2.upRightCorner[1] -
                 CAGE_BOX_H))
 
+        self.selectPlayerStatus(Elts.PLAYER, Elts.AI)
         self.setGame()
+
+    def selectPlayerStatus(self, status1, status2):
+        self.player1.setStatus(status1)
+        self.player2.setStatus(status2)
 
     def setGame(self):
         """
