@@ -55,7 +55,7 @@ class Game(object):
                 self.cage2.upRightCorner[0], self.cage2.upRightCorner[1] -
                 CAGE_BOX_H))
 
-        self.selectPlayerStatus(Elts.PLAYER, Elts.AI)
+        self.selectPlayerStatus(Elts.AI, Elts.AI)
         self.setGame()
 
     def selectPlayerStatus(self, status1, status2):
