@@ -77,7 +77,8 @@ class Controller(ControllerBase):
         for i, player in enumerate(self.playerList):
             if self.isAI(i):
                 bot = self.botList[i]
-                directionsList = bot.giveDirections(verbose=1)
+                # directionsList = bot.giveDirections2(generation=0, specie=i)
+                directionsList = bot.giveDirections()
                 print(directionsList)
                 for direction in directionsList:
                     self.movePlayer(direction, i)
