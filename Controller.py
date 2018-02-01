@@ -34,6 +34,12 @@ class Controller(ControllerBase):
         self.LEFT = Game.LEFT
         self.RIGHT = Game.RIGHT
         self.createBot()
+        self.bestScore = 0
+        
+    def launchGame(self):
+        self.game.setGame()
+        for i in range [0,1]:
+            self.playerList[i].score = 0
 
     def getPlayerInformations(self, player):
         drawPoint = player.getDrawPoint()
@@ -106,3 +112,26 @@ class Controller(ControllerBase):
 
     def checkEndOfGame(self):
         self.game.isGameOver(self.time)
+        
+    def setPlayer(self, playerNum, playerType):
+    # définit si le joueur est un robot ou un humain (choix de l'utilisateur)
+        self.game.selectPlayerStatus(playerNum, playerType)
+        
+    def setPlayerName(self, playerNum, name):
+        self.game.setPlayerName(playerNum, name)
+        
+    def setPlayerColor(self, playerNum, couleur):
+        pass
+        
+    def setGameType(self, num):
+        self.game.gamemode = self.game.GAMEMODES[num]
+        
+    def setBackground(self, background):
+        pass
+        
+    def upDateBest(self, num):
+        if num == 0:
+            self.bestScore = self.game.bestTime
+        if num == 1:
+            self.bestScore = self.game.bestScore
+        

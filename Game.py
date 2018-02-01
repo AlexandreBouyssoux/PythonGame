@@ -31,6 +31,8 @@ class Game(object):
         self.gameTick = GAME_TICK
         self.gamemode = DEFAULT_GAME_MODE
         print("gamemode: {}".format(self.gamemode))
+        self.bestScore = 0
+        self.bestTime = 0
 
         self.player1.setColor([0, 0, 255])
         self.player2.setColor([255, 0, 0])
@@ -58,9 +60,19 @@ class Game(object):
         self.selectPlayerStatus(Elts.AI, Elts.AI)
         self.setGame()
 
-    def selectPlayerStatus(self, status1, status2):
-        self.player1.setStatus(status1)
-        self.player2.setStatus(status2)
+    def selectPlayerStatus(self, NumPlayer, status):
+        if NumPlayer == 1 :
+            self.player1.setStatus(status)
+        if NumPlayer == 2 :
+            self.player2.setStatus(status)
+            
+    def setPlayerName(self, playerNum, name):
+    # définit le nom du joueur (choix de l'utilisateur)
+        if playerNum == 1:
+            self.player1.name = name
+        if playerNum == 2:
+            self.player2.name = name
+        self.controller.refresh()
 
     def setGame(self):
         """
@@ -121,7 +133,7 @@ class Game(object):
         if self.inter.isBallintoCage(self.cage2, self.ball):
             self.player1.scores()
             if verbose > 0:
-                print("player1 scores a goal")
+                print("player1 scores a goal {}".format(self.player1.score))
             self.setGame()
 
     def isGameOver(self, time):
@@ -133,15 +145,19 @@ class Game(object):
                 self.gameOver(self.player1.name)
             elif score2 == 10:
                 self.gameOver(self.player2.name)
+            self.upDateBestTime(time)
         elif gamemode == GAME_MODES[1]:
             # player with max score win
             if time >= GAME_TIME:
                 if score1 > score2:
                     self.gameOver(self.player1.name)
+                    self.upDateBestScore(score1)
                 elif score2 > score1:
                     self.gameOver(self.player2.name)
+                    self.upDateBestScore(score2)
                 else:
                     self.gameOver(None)
+                
 
     def gameOver(self, winner):
         _, _ = self.getScore(verbose=1)
@@ -152,3 +168,11 @@ class Game(object):
             print("Game over, It's a draw")
             print("||||||||||||||||||END|||||||||||||||||||")
         sys.exit()
+        
+    def upDateBestScore(self, score):
+        if score > self.bestScore:
+            self.bestScore = score
+            
+    def upDateBestTime(self, time):
+        if time < self.bestTime:
+            self.bestTime = time
