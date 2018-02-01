@@ -24,29 +24,32 @@ sys.excepthook = excepthook
 
 
 class mainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, generationNumber, specie, app):
         super().__init__()
         self.setWindowTitle("Window")
         self.timer = QTimer()
-        self.controller = Controller.Controller()
-        self.centralWidget = GraphicView(self, self.timer, self.controller)
+        self.controller = Controller.Controller(generationNumber, specie)
+        self.centralWidget = GraphicView(self, self.timer, self.controller,
+                                         app)
         self.setCentralWidget(self.centralWidget)
 
 
 class GraphicView(QGraphicsView):
-    def __init__(self, parent, timer, controller):
+    def __init__(self, parent, timer, controller, app):
         super().__init__(parent)
-        self.mainScene = GraphicScene(self, timer, controller)
+        self.mainScene = GraphicScene(self, timer, controller, app)
         self.setScene(self.mainScene)
 
 
 class GraphicScene(QGraphicsScene):
-    def __init__(self, parent, timer, controller):
+    def __init__(self, parent, timer, controller, app):
         super().__init__(parent)
         self.c = controller
         self.c.add(self)
         self.timer = timer
         self.setSceneRect(*self.c.WINDOW_SIZE)
+        self.eog = False
+        self.app = app
 
         for cage in self.c.getCageList():
             pen = QPen(QColor(0, 0, 0), 1, Qt.DotLine)
@@ -71,50 +74,59 @@ class GraphicScene(QGraphicsScene):
         self.c.refresh()
 
     def keyPressEvent(self, event):
-        if not self.c.isAI(0):
+        if not self.c.isAI(0) or not self.c.isGOAL(0):
             if event.key() == Qt.Key_Up:
+                self.c.saveData(self.c.JUMP)
                 self.c.movePlayer(self.c.JUMP, 0)
                 self.c.refresh()
 
             if event.key() == Qt.Key_Left:
+                self.c.saveData(self.c.LEFT)
                 self.c.movePlayer(self.c.LEFT, 0)
                 self.c.refresh()
 
             if event.key() == Qt.Key_Right:
+                self.c.saveData(self.c.RIGHT)
                 self.c.movePlayer(self.c.RIGHT, 0)
                 self.c.refresh()
 
-        if not self.c.isAI(1):
+        if not self.c.isAI(1) or not self.c.isGOAL(1):
             if event.key() == Qt.Key_Z:
+                self.c.saveData(self.c.JUMP)
                 self.c.movePlayer(self.c.JUMP, 1)
                 self.c.refresh()
 
             if event.key() == Qt.Key_Q:
+                self.c.saveData(self.c.LEFT)
                 self.c.movePlayer(self.c.LEFT, 1)
                 self.c.refresh()
 
             if event.key() == Qt.Key_D:
+                self.c.saveData(self.c.RIGHT)
                 self.c.movePlayer(self.c.RIGHT, 1)
                 self.c.refresh()
 
     def refresh(self):
         self.c.moveAI()
+        self.c.placeGoal()
         self.c.collisions()
         for player in self.c.getPlayerList():
             playerX, playerY = self.c.getPlayerPosition(player)
             self.dictEllipse[player].setPos(playerX, playerY)
         self.c.updateTime()
-        self.c.checkEndOfGame()
+        self.eog = self.c.checkEndOfGame()
+        if self.eog:
+            self.app.quit()
 
 # launch the GUI
 
 
-def main():
+def main(generation, specie):
     app = QApplication(sys.argv)
-    window = mainWindow()
+    window = mainWindow(generation, specie, app)
     window.show()
     app.exec()
 
 
 if __name__ == '__main__':
-    main()
+    main(0, 0)
