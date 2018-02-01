@@ -3,7 +3,7 @@
 # import
 import numpy as np
 from Game import JUMP, LEFT, RIGHT
-
+import Elements as Elts
 # class
 
 
@@ -32,8 +32,8 @@ class Bot(object):
         self.yDistanceBotBall = None
         self.xDistanceBotAdv = None
         self.yDistanceBotAdv = None
-        self.xDistanceBotCage = None
-        self.yDistanceBotCage = None
+        self.xRelativeballSpeed = None
+        self.yBallSpeed = None
 
         self.updatePositionInformations()
         self.updateDifferenceInformations()
@@ -43,17 +43,20 @@ class Bot(object):
         self.advPos = (self.adv.getX(), self.adv.getY())
         self.ballPos = (self.ball.getX(), self.ball.getY())
         self.advCagePos = self.advCage.upRightCorner
+        self.xBallSpeed, self.yBallSpeed = self.ball.getSpeed()
 
     def updateDifferenceInformations(self):
         self.goalOrientation = np.sign(self.botPos[0] - self.advCagePos[0]) * \
             np.sign(self.botPos[0] - self.ballPos[0])
 
-        self.xDistanceBotBall = self.botPos[0] - self.ballPos[0]
-        self.yDistanceBotBall = self.botPos[1] - self.ballPos[1]
-        self.xDistanceBotAdv = self.botPos[0] - self.advPos[0]
-        self.yDistanceBotAdv = self.botPos[1] - self.advPos[1]
-        self.xDistanceBotCage = self.botPos[0] - self.advCagePos[0]
-        self.yDistanceBotCage = self.botPos[1] - self.advCagePos[1]
+        self.xDistanceBotBall = (self.botPos[0] - self.ballPos[0]) / \
+            Elts.WINDOW_SIZE[2]
+        self.yDistanceBotBall = (self.botPos[1] - self.ballPos[1]) / \
+            Elts.WINDOW_SIZE[3]
+        self.xDistanceBotAdv = (self.botPos[0] - self.advPos[0]) / \
+            Elts.WINDOW_SIZE[2]
+        self.yDistanceBotAdv = (self.botPos[1] - self.advPos[1]) / \
+            Elts.WINDOW_SIZE[3]
 
     def giveDirections(self, verbose=0):
         """
@@ -86,53 +89,26 @@ class Bot(object):
         self.updatePositionInformations()
         return directionsList
 
-    def relu(self, v):
-        """
-        non linear fonction relu for the neural network
-        """
-        if v > 0:
-            solution = v
-        else:
-            solution = 0
-        return solution
+    def giveDirections2(self, model):
+        directionList = []
 
-    def giveDirections2(self, generation=0, specie=0, verbose=0):
-        """
-        return a list of direction based on a pre-trained neural network
-        """
-        directionsList = []
+        self.updatePositionInformations()
+        self.updateDifferenceInformations()
 
-        w1 = np.loadtxt(r"GEN_{}/SPE_{}/w1.txt".format(generation, specie))
-        w2 = np.loadtxt(r"GEN_{}/SPE_{}/w2.txt".format(generation, specie))
-        w3 = np.loadtxt(r"GEN_{}/SPE_{}/w3.txt".format(generation, specie))
-
-        model = [w1, w2, w3]
         x = np.asarray([self.goalOrientation,
-             self.xDistanceBotBall,
-             self.yDistanceBotBall,
-             self.xDistanceBotAdv,
-             self.yDistanceBotAdv,
-             self.xDistanceBotCage,
-             self.yDistanceBotCage])
+                        self.xDistanceBotBall,
+                        self.yDistanceBotBall,
+                        self.xDistanceBotAdv,
+                        self.yDistanceBotAdv,
+                        self.xBallSpeed,
+                        self.yBallSpeed])
 
-        a1 = np.zeros(10, dtype=float)
-        a2 = np.zeros(10, dtype=float)
-        a3 = np.zeros(3, dtype=float)
-        a = [x, a1, a2, a3]
+        modelOutput = model.predict(np.expand_dims(x, axis=0))[0]
+        if modelOutput[0] > 0.5:
+            directionList.append(JUMP)
+        if modelOutput[1] > 0.5:
+            directionList.append(RIGHT)
+        if modelOutput[2] > 0.5:
+            directionList.append(LEFT)
 
-        for t in range(1, len(a)):
-            for i in range(a[t].size):
-                for j in range(a[t-1].size):
-                    a[t][i] += a[t-1][j] * model[t-1][i][j]
-                if not t == 3:
-                    a[t][i] = self.relu(a[t][i])
-
-        argm = np.argmax(a[-1])
-        if argm == 0:
-            directionsList.append(JUMP)
-        elif argm == 1:
-            directionsList.append(LEFT)
-        elif argm == 2:
-            directionsList.append(RIGHT)
-
-        return directionsList
+        return directionList

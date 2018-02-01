@@ -4,7 +4,7 @@
 import sys
 
 # Constants
-WINDOW_SIZE = (0, 0, 1000, 600)
+WINDOW_SIZE = (0, 0, 1150, 600)
 BALL_SIZE = 50
 PLAYER_SIZE = 75
 SPEED_INCREASE = 10
@@ -19,6 +19,7 @@ CAGE_BOX_H = 30
 MAX_SPEED = PLAYER_SIZE/2
 PLAYER = "player"
 AI = "ai"
+GOAL = "goal"
 BALL = "ball"
 # Class
 
@@ -169,9 +170,12 @@ class Player(Base):
         self.rebond = False
         self.debug = False
         self.status = PLAYER
+        self.generation = 0
+        self.specie = 0
+        self.hitNumber = 0
 
     def setStatus(self, status):
-        if status not in [PLAYER, AI]:
+        if status not in [PLAYER, AI, GOAL]:
             print("ERROR, invalid status {}".format(status))
             sys.exit()
         self.status = status
@@ -199,6 +203,12 @@ class Player(Base):
 
     def getScore(self):
         return(self.score)
+
+    def addHit(self):
+        self.hitNumber += 1
+
+    def getHit(self):
+        return self.hitNumber
 
 
 class Box(object):

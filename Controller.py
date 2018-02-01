@@ -4,7 +4,16 @@
 import Game
 import Bot
 import sys
+import os
+from keras.models import load_model
 
+# constant
+dictDirection = {
+        Game.JUMP: 0,
+        Game.LEFT: 1,
+        Game.RIGHT: 2,
+        }
+DIRECTORY = r"C:\Users\alexa\Documents\PythonProjects\TestJeux"
 # class
 
 
@@ -21,11 +30,11 @@ class ControllerBase:
 
 
 class Controller(ControllerBase):
-    def __init__(self):
+    def __init__(self, generationNumber, specie):
         super().__init__()
         self.joueurList = []
         self.WINDOW_SIZE = Game.WINDOW_SIZE
-        self.game = Game.Game()
+        self.game = Game.Game(generationNumber, specie)
         self.playerList = self.game.getElements()
         self.cageList = self.game.getStaticElements()
         self.botList = [None, None]
@@ -34,6 +43,8 @@ class Controller(ControllerBase):
         self.LEFT = Game.LEFT
         self.RIGHT = Game.RIGHT
         self.createBot()
+        self.data = []
+        self.model = None
 
     def getPlayerInformations(self, player):
         drawPoint = player.getDrawPoint()
@@ -73,15 +84,39 @@ class Controller(ControllerBase):
             if player.status == Game.AI:
                 self.botList[i] = Bot.Bot(self.game, player)
 
-    def moveAI(self):
+    def moveAI(self, mode=0):
         for i, player in enumerate(self.playerList):
             if self.isAI(i):
                 bot = self.botList[i]
-                # directionsList = bot.giveDirections2(generation=0, specie=i)
-                directionsList = bot.giveDirections()
-                print(directionsList)
+                if mode == 0:
+                    if self.model is None:
+                        genPath = os.path.join(DIRECTORY, "GEN_" +
+                                               str(player.generation))
+                        os.chdir(genPath)
+                        modelName = "_".join(["model", str(player.specie)])
+                        self.model = load_model(modelName)
+                    directionsList = bot.giveDirections2(self.model)
+                elif mode == 1:
+                    directionsList = bot.giveDirections()
                 for direction in directionsList:
                     self.movePlayer(direction, i)
+
+    def isGOAL(self, playerNumber=0):
+        """
+        return True is the player is an AI
+        """
+        isGOAL = False
+        player = self.playerList[playerNumber]
+        if player.status == Game.GOAL:
+            isGOAL = True
+        return isGOAL
+
+    def placeGoal(self):
+        for i, player in enumerate(self.playerList):
+            if self.isGOAL(i):
+                x, y = self.game.getGoalPos()
+                player.setPosition(x, y)
+                player.setSpeed(0, 0)
 
     def getPlayerList(self):
         return self.playerList
@@ -105,4 +140,24 @@ class Controller(ControllerBase):
         self.time += self.game.gameTick
 
     def checkEndOfGame(self):
-        self.game.isGameOver(self.time)
+        endOfGame, winner = self.game.isGameOver(self.time)
+        return endOfGame
+
+    def saveData(self, direction):
+
+        botInformation = Bot.Bot(self.game, self.playerList[0])
+        botInformation.updateDifferenceInformations()
+        goalOrientation = botInformation.goalOrientation
+        xDistanceBotBall = botInformation.xDistanceBotBall
+        yDistanceBotBall = botInformation.yDistanceBotBall
+        xDistanceBotAdv = botInformation.xDistanceBotAdv
+        yDistanceBotAdv = botInformation.yDistanceBotAdv
+
+        self.data.append([str(goalOrientation), str(xDistanceBotBall),
+                          str(yDistanceBotBall), str(xDistanceBotAdv),
+                          str(yDistanceBotAdv), str(dictDirection[direction])])
+
+        self.sendDataToGame()
+
+    def sendDataToGame(self):
+        self.game.setData(self.data)
