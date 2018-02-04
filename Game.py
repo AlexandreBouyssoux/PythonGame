@@ -13,6 +13,7 @@ GAME_TICK = 60
 GAME_MODES = ["First to 10", "Best in 2 min"]
 DEFAULT_GAME_MODE = GAME_MODES[0]
 AI = Elts.AI
+PLAYER = Elts.PLAYER
 JUMP = "jump"
 LEFT = "left"
 RIGHT = "right"
@@ -60,19 +61,9 @@ class Game(object):
         self.selectPlayerStatus(Elts.AI, Elts.AI)
         self.setGame()
 
-    def selectPlayerStatus(self, NumPlayer, status):
-        if NumPlayer == 1 :
-            self.player1.setStatus(status)
-        if NumPlayer == 2 :
-            self.player2.setStatus(status)
-            
-    def setPlayerName(self, playerNum, name):
-    # définit le nom du joueur (choix de l'utilisateur)
-        if playerNum == 1:
-            self.player1.name = name
-        if playerNum == 2:
-            self.player2.name = name
-        self.controller.refresh()
+    def selectPlayerStatus(self, status1, status2):
+        self.player1.setStatus(status1)
+        self.player2.setStatus(status2)
 
     def setGame(self):
         """
@@ -140,13 +131,15 @@ class Game(object):
         gamemode = self.gamemode
         score1, score2 = self.getScore()
         if gamemode == GAME_MODES[0]:
+            print("gamemode 0")
             # First player to score 10 goals win the game
-            if score1 == 10:
+            if score1 >= 10:
                 self.gameOver(self.player1.name)
-            elif score2 == 10:
+            elif score2 >= 10:
                 self.gameOver(self.player2.name)
             self.upDateBestTime(time)
         elif gamemode == GAME_MODES[1]:
+            print("gamemode 1")
             # player with max score win
             if time >= GAME_TIME:
                 if score1 > score2:
@@ -157,7 +150,7 @@ class Game(object):
                     self.upDateBestScore(score2)
                 else:
                     self.gameOver(None)
-                
+
 
     def gameOver(self, winner):
         _, _ = self.getScore(verbose=1)
@@ -168,11 +161,11 @@ class Game(object):
             print("Game over, It's a draw")
             print("||||||||||||||||||END|||||||||||||||||||")
         sys.exit()
-        
+
     def upDateBestScore(self, score):
         if score > self.bestScore:
             self.bestScore = score
-            
+
     def upDateBestTime(self, time):
         if time < self.bestTime:
             self.bestTime = time

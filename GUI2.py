@@ -7,7 +7,7 @@ from PyQt5.QtGui import QPen, QColor, QBrush, QFont
 from PyQt5.QtWidgets import QMainWindow, QApplication, QGraphicsView,\
     QGraphicsScene, QPushButton, QHBoxLayout, QVBoxLayout, QWidget, QLabel, \
     QTextEdit, QMenuBar, QLineEdit, QSpacerItem, QSizePolicy, QToolButton, \
-    QMenu, QFrame
+    QMenu, QFrame, QComboBox
 import Controller
 
 
@@ -24,7 +24,8 @@ sys.excepthook = excepthook
 
 # CONSTANT
 TITLE = "OL - FCN : jeu de foot"
-COLOR_LIST = ["bleu", "rouge", "vert", "jaune"]
+COLOR_LIST = Controller.COLOR_LIST
+GAMEMODES = ["Au score", "Au temps"]
 
 # class
 
@@ -64,14 +65,14 @@ class Welcome(QWidget):
         self.layoutVG.addWidget(self.parameters)
 
         # fonctions clikables
-        self.player1_human = lambda: self.setPlayer(1, "player")
-        self.player1_robot = lambda: self.setPlayer(1, "ai")
-        self.player2_human = lambda: self.setPlayer(2, "player")
-        self.player2_robot = lambda: self.setPlayer(2, "ai")
+        self.player1_human = lambda: self.setPlayer(0, Controller.PLAYER)
+        self.player1_robot = lambda: self.setPlayer(0, Controller.AI)
+        self.player2_human = lambda: self.setPlayer(1, Controller.PLAYER)
+        self.player2_robot = lambda: self.setPlayer(1, Controller.AI)
 
-        self.setPlayer1Name = lambda: self.setPlayerName(1,
+        self.setPlayer1Name = lambda: self.setPlayerName(0,
                                             self.paramPlayer1NameEdit.text())
-        self.setPlayer2Name = lambda: self.setPlayerName(2,
+        self.setPlayer2Name = lambda: self.setPlayerName(1,
                                             self.paramPlayer2NameEdit.text())
 
         self.activateFrame1 = lambda: self.activate(1)
@@ -82,7 +83,8 @@ class Welcome(QWidget):
         self.unactivateFrame3 = lambda: self.unactivate(3)
 
         # paramètre joueurs
-        self.paramPlayer_status = QLabel("Le joueur 1 est-t-il humain ou IA ?")
+        self.paramPlayer1_stat = QLabel("Le joueur 1 est-t-il humain ou IA ?")
+        self.paramPlayer2_stat = QLabel("Le joueur 2 est-t-il humain ou IA ?")
 
         self.paramPlayer1_human = QPushButton("Humain")
         self.paramPlayer1_human.clicked.connect(self.player1_human)
@@ -94,7 +96,8 @@ class Welcome(QWidget):
         self.paramPlayer2_robot = QPushButton("IA")
         self.paramPlayer2_robot.clicked.connect(self.player2_robot)
 
-        self.paramPlayerName = QLabel("Nom")
+        self.paramPlayer1Name = QLabel("Nom")
+        self.paramPlayer2Name = QLabel("Nom")
 
         self.paramPlayer1NameEdit = QLineEdit("Joueur 1")
         self.paramPlayer1NameConfirm = QPushButton("Ok")
@@ -104,11 +107,13 @@ class Welcome(QWidget):
         self.paramPlayer2NameConfirm = QPushButton("Ok")
         self.paramPlayer2NameConfirm.clicked.connect(self.setPlayer2Name)
 
-        self.paramPlayerColorTitle = QLabel("Couleur (déroulez la flèche)")
+        self.paramPlayer1ColorTitle = QLabel("Couleur")
+        self.paramPlayer2ColorTitle = QLabel("Couleur")
+
         self.paramPlayer1Color = DropDownMenu(self, self.controller,
-                                              "couleur", COLOR_LIST)
+                                              "couleur 1", COLOR_LIST)
         self.paramPlayer2Color = DropDownMenu(self, self.controller,
-                                              "couleur", COLOR_LIST)
+                                              "couleur 2", COLOR_LIST)
 
         self.paramPlayer1_Ok = QPushButton("Valider")
         self.paramPlayer1_Ok.clicked.connect(self.unactivateFrame1)
@@ -124,7 +129,7 @@ class Welcome(QWidget):
         self.frame1 = QFrame()
         self.layoutV1 = QVBoxLayout()
         self.frame1.setLayout(self.layoutV1)
-        self.layoutV1.addWidget(self.paramPlayer_status)
+        self.layoutV1.addWidget(self.paramPlayer1_stat)
         # under-layout: select player status
         self.underLayout1 = QHBoxLayout()
         self.underLayout1.addWidget(self.paramPlayer1_human)
@@ -132,13 +137,13 @@ class Welcome(QWidget):
         self.layoutV1.addLayout(self.underLayout1)
         # under-layout: select player name
         self.underLayout2 = QHBoxLayout()
-        self.underLayout2.addWidget(self.paramPlayerName)
+        self.underLayout2.addWidget(self.paramPlayer1Name)
         self.underLayout2.addWidget(self.paramPlayer1NameEdit)
         self.underLayout2.addWidget(self.paramPlayer1NameConfirm)
         self.layoutV1.addLayout(self.underLayout2)
         # under-layout: select player color
         self.underLayout3 = QHBoxLayout()
-        self.underLayout3.addWidget(self.paramPlayerColorTitle)
+        self.underLayout3.addWidget(self.paramPlayer1ColorTitle)
         self.underLayout3.addWidget(self.paramPlayer1Color)
         self.layoutV1.addLayout(self.underLayout3)
 
@@ -155,7 +160,7 @@ class Welcome(QWidget):
         self.frame2 = QFrame()
         self.layoutV2 = QVBoxLayout()
         self.frame2.setLayout(self.layoutV2)
-        self.layoutV2.addWidget(self.paramPlayer_status)
+        self.layoutV2.addWidget(self.paramPlayer2_stat)
         # under-layout: select player status
         self.underLayout1 = QHBoxLayout()
         self.underLayout1.addWidget(self.paramPlayer2_human)
@@ -163,13 +168,13 @@ class Welcome(QWidget):
         self.layoutV2.addLayout(self.underLayout1)
         # under-layout: select player name
         self.underLayout2 = QHBoxLayout()
-        self.underLayout2.addWidget(self.paramPlayerName)
+        self.underLayout2.addWidget(self.paramPlayer2Name)
         self.underLayout2.addWidget(self.paramPlayer2NameEdit)
         self.underLayout2.addWidget(self.paramPlayer2NameConfirm)
         self.layoutV2.addLayout(self.underLayout2)
         # under-layout: select player color
         self.underLayout3 = QHBoxLayout()
-        self.underLayout3.addWidget(self.paramPlayerColorTitle)
+        self.underLayout3.addWidget(self.paramPlayer2ColorTitle)
         self.underLayout3.addWidget(self.paramPlayer2Color)
         self.layoutV2.addLayout(self.underLayout3)
 
@@ -183,11 +188,11 @@ class Welcome(QWidget):
         self.layoutVG.addWidget(self.paramGame)
 
         # paramètre game
-        self.paramGame_title = QLabel("Mode de jeu : (déroulez la flèche)")
+        self.paramGame_title = QLabel("Mode de jeu :")
         self.paramGame_menu = DropDownMenu(self, self.controller,
-                                           "mode", ["Au temps", "Au score"])
+                                           "mode", GAMEMODES)
 
-        self.design_title = QLabel("Fond du jeu : (déroulez la flèche)")
+        self.design_title = QLabel("Fond du jeu :")
         self.design_menu = DropDownMenu(self, self.controller,
                                         "fond", ["A", "B"])
 
@@ -211,7 +216,7 @@ class Welcome(QWidget):
         self.layoutVG.addItem(self.spacerItem1)
 
         self.score1 = QLabel("Score : ")
-        self.score2 = QLineEdit("{} : {} \ {} : {}".format(
+        self.score2 = QLabel("{} : {} \ {} : {}".format(
                                     self.controller.playerList[0].name,
                                     self.controller.playerList[0].score,
                                     self.controller.playerList[1].name,
@@ -250,11 +255,11 @@ class Welcome(QWidget):
         self.controller.refresh()
 
     def refresh(self):
-        self.score2 = QLineEdit("{} : {} \ {} : {}".format(
-                                    self.controller.playerList[0].name,
-                                    self.controller.playerList[0].score,
-                                    self.controller.playerList[1].name,
-                                    self.controller.playerList[1].score))
+        self.score2.setText(("{} : {} \ {} : {}".format(
+                             self.controller.playerList[0].name,
+                             self.controller.playerList[0].score,
+                             self.controller.playerList[1].name,
+                             self.controller.playerList[1].score)))
 
     # mode de jeu
     def activate(self, number):
@@ -303,31 +308,32 @@ class DropDownMenu(QWidget):
     def __init__(self, parent, controller, name, items=[]):
         super().__init__(parent)
         self.name = name
-        self.menuLayout = QVBoxLayout()
-        self.menu = QMenu()
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
         self.controller = controller
-        self.controller.add(self)
+        self.comboBox = QComboBox(self)
+        self.layout.addWidget(self.comboBox)
 
-        for i in items:
-            self.menu.addAction(i)
+        for item in items:
+            self.comboBox.addItem(item)
 
-        self.button = QToolButton(self)
-        self.button.setStyleSheet("border: 0px; padding: 0px;")
-        self.button.setCursor(Qt.ArrowCursor)
-        # self.button.setText(self.name)
-        self.button.triggered.connect(lambda: self.menuActionTriggered(i))
-        self.button.setPopupMode(QToolButton.InstantPopup)
-        self.button.setMenu(self.menu)
-        self.menuLayout.addWidget(self.button)
-        self.setLayout(self.menuLayout)
+        self.comboBox.activated[str].connect(self.menuActionTriggered)
+
+        self.show()
 
     def menuActionTriggered(self, item):
         if self.name == "couleur 1":
-            self.controller.setPlayerColor(1, item)
+            self.controller.setPlayerColor(0, item)
         if self.name == "couleur 2":
-            self.controller.setPlayerColor(2, item)
+            self.controller.setPlayerColor(1, item)
         if self.name == "mode":
-            self.controller.setGameType(item)
+            print("I am here")
+            print(item)
+            print(GAMEMODES)
+            print(GAMEMODES.index(item))
+            num = GAMEMODES.index(item)
+            print(num)
+            self.controller.setGameType(num)
         if self.name == "fond":
             self.controller.setBackground(item)
 
@@ -405,6 +411,9 @@ class GraphicScene(QGraphicsScene):
         for player in self.c.getPlayerList():
             playerX, playerY = self.c.getPlayerPosition(player)
             self.dictEllipse[player].setPos(playerX, playerY)
+            playerColor = player.getColor()
+            brush = QBrush(QColor(*playerColor), Qt.SolidPattern)
+            self.dictEllipse[player].setBrush(brush)
         self.c.updateTime()
         self.c.checkEndOfGame()
 

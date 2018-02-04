@@ -5,6 +5,11 @@ import Game
 import Bot
 import sys
 
+# constants
+AI = Game.AI
+PLAYER = Game.PLAYER
+COLOR_LIST = ["bleu", "rouge", "vert", "jaune"]
+
 # class
 
 
@@ -35,7 +40,7 @@ class Controller(ControllerBase):
         self.RIGHT = Game.RIGHT
         self.createBot()
         self.bestScore = 0
-        
+
     def launchGame(self):
         self.game.setGame()
         for i in range [0,1]:
@@ -112,26 +117,41 @@ class Controller(ControllerBase):
 
     def checkEndOfGame(self):
         self.game.isGameOver(self.time)
-        
+
     def setPlayer(self, playerNum, playerType):
-    # définit si le joueur est un robot ou un humain (choix de l'utilisateur)
-        self.game.selectPlayerStatus(playerNum, playerType)
-        
+        """
+        définit si le joueur est un robot ou un humain (choix de
+        l'utilisateur)
+        """
+        player = self.playerList[playerNum]
+        player.setStatus(playerType)
+
     def setPlayerName(self, playerNum, name):
-        self.game.setPlayerName(playerNum, name)
-        
+        player = self.playerList[playerNum]
+        player.setName(str(name))
+
     def setPlayerColor(self, playerNum, couleur):
-        pass
-        
+        player = self.playerList[playerNum]
+        if couleur == COLOR_LIST[0]:
+            player.setColor((0, 0, 255))
+        elif couleur == COLOR_LIST[1]:
+            player.setColor((255, 0, 0))
+        elif couleur == COLOR_LIST[2]:
+            player.setColor((0, 255, 0))
+        elif couleur == COLOR_LIST[3]:
+            player.setColor((122, 123, 0))
+
     def setGameType(self, num):
-        self.game.gamemode = self.game.GAMEMODES[num]
-        
+        print("we are here")
+        print(Game.GAME_MODES[num])
+        self.game.gamemode = Game.GAME_MODES[num]
+
     def setBackground(self, background):
         pass
-        
+
     def upDateBest(self, num):
         if num == 0:
             self.bestScore = self.game.bestTime
         if num == 1:
             self.bestScore = self.game.bestScore
-        
+
