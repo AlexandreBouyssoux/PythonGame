@@ -3,7 +3,7 @@
 # import
 import sys
 from PyQt5.QtCore import qFatal, Qt, QTimer
-from PyQt5.QtGui import QPen, QColor, QBrush, QFont
+from PyQt5.QtGui import QPen, QColor, QBrush, QFont, QPixmap
 from PyQt5.QtWidgets import QMainWindow, QApplication, QGraphicsView,\
     QGraphicsScene, QPushButton, QHBoxLayout, QVBoxLayout, QWidget, QLabel, \
     QTextEdit, QMenuBar, QLineEdit, QSpacerItem, QSizePolicy, QToolButton, \
@@ -26,6 +26,7 @@ sys.excepthook = excepthook
 TITLE = "OL - FCN : jeu de foot"
 COLOR_LIST = Controller.COLOR_LIST
 GAMEMODES = ["Au score", "Au temps"]
+BACKGROUND_LIST = Controller.BACKGROUND_LIST
 
 # class
 
@@ -195,7 +196,7 @@ class Welcome(QWidget):
 
         self.design_title = QLabel("Fond du jeu :")
         self.design_menu = DropDownMenu(self, self.controller,
-                                        "fond", ["A", "B"])
+                                        "fond", BACKGROUND_LIST)
 
         self.paramGame_Ok = QPushButton("Valider")
         self.paramGame_Ok.clicked.connect(self.unactivateFrame3)
@@ -359,6 +360,7 @@ class GraphicScene(QGraphicsScene):
             self.addRect(*cage.upRightCorner, cage.w, cage.h, pen, brush)
 
         self.dictEllipse = {}
+        self.dictImage = {}
         for player in self.c.getPlayerList():
             playerX, playerY, playerSize, playerColor = \
                 self.c.getPlayerInformations(player)
@@ -367,6 +369,9 @@ class GraphicScene(QGraphicsScene):
             self.dictEllipse[player] = (self.addEllipse(0, 0,
                                         playerSize, playerSize, pen, brush))
             self.dictEllipse[player].setPos(playerX, playerY)
+            
+            self.dictImage[player] = QLabel()
+            self.dictImage[player].show()
 
         self.c.refresh()
         self.timer.timeout.connect(self.updateTimer)
@@ -411,9 +416,18 @@ class GraphicScene(QGraphicsScene):
             playerColor = player.getColor()
             brush = QBrush(QColor(*playerColor), Qt.SolidPattern)
             self.dictEllipse[player].setBrush(brush)
+            print(player.image)
+            imagePlayer = QPixmap(player.image)
+            imagePlayerResized = imagePlayer.scaled(player.size, player.size, 
+                                                    Qt.KeepAspectRatio)
+            self.dictImage[player].setPixmap(imagePlayerResized)
+            self.dictImage[player].show()
+            
         for cage in self.c.getCageList()[:2]:
             brush = QBrush(QColor(*cage.color), Qt.CrossPattern)
             self.dictCage[cage].setBrush(brush)
+            
+        
 
         if self.run is True:
             self.c.moveAI()
@@ -421,6 +435,7 @@ class GraphicScene(QGraphicsScene):
             for player in self.c.getPlayerList():
                 playerX, playerY = self.c.getPlayerPosition(player)
                 self.dictEllipse[player].setPos(playerX, playerY)
+                self.dictImage[player].setPos(playerX, playerY)
             self.c.updateTime()
             self.c.checkEndOfGame()
 

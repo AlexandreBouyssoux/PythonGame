@@ -39,6 +39,7 @@ class Base(object):
         self.maxSpeed = MAX_SPEED
         self.rebond = True
         self.debug = True
+        self.image = None
 
     def _applyGravity(self):
         applyGravity = True
@@ -156,6 +157,9 @@ class Base(object):
 
     def getSpeed(self):
         return(self.xSpeed, self.ySpeed)
+        
+    def setImage(self, image):
+        self.image = image
 
 
 class Player(Base):

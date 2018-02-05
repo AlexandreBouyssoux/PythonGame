@@ -4,11 +4,36 @@
 import Game
 import Bot
 import sys
+import os
 
 # constants
 AI = Game.AI
 PLAYER = Game.PLAYER
-COLOR_LIST = ["bleu", "rouge", "vert", "jaune"]
+COLOR_LIST = ["OL", "SR", "ASSE", "FCN"]
+BACKGROUND_LIST = ["Parc OL", "Roazhon Park", "Geoffroy Guichard",
+                   "La Beaujoire"]
+DIRECTORY = os.getcwd()
+RESSOURCE = os.path.join(DIRECTORY, "Ressources")
+
+JOUEUR_OL = os.path.join(RESSOURCE, 'Joueur_OL.png')
+JOUEUR_SR = os.path.join(RESSOURCE, 'Joueur_SR.png')
+JOUEUR_ASSE = os.path.join(RESSOURCE, 'Joueur_ASSE.png')
+JOUEUR_FCN = os.path.join(RESSOURCE, 'Joueur_FCN.png')
+
+STADE_OL = os.path.join(RESSOURCE, "Stade_OL.jpg")
+STADE_SR = os.path.join(RESSOURCE, "Stade_SR.jpg")
+STADE_ASSE = os.path.join(RESSOURCE, "Stade_ASSE.jpg")
+STADE_FCN = os.path.join(RESSOURCE, "Stade_FCN.jpg")
+
+DICT_TEAM = {"OL": JOUEUR_OL,
+             "SR": JOUEUR_SR,
+             "ASSE": JOUEUR_ASSE,
+             "FCN": JOUEUR_FCN}
+
+DICT_STADE = {"OL": STADE_OL,
+              "SR": STADE_SR,
+              "ASSE": STADE_ASSE,
+              "FCN": STADE_FCN}
 
 # class
 
@@ -168,13 +193,16 @@ class Controller(ControllerBase):
         elif couleur == COLOR_LIST[3]:
             player.setColor((255, 255, 0))
         self.game.updateCageColor()
+        if couleur in COLOR_LIST:
+            image = DICT_TEAM[couleur]
+            player.setImage(image)
 
     def setGameType(self, num):
         print(Game.GAME_MODES[num])
         self.game.gamemode = Game.GAME_MODES[num]
 
     def setBackground(self, background):
-        pass
+        self.game.setBackground(background)
 
     def upDateBest(self, num):
         if num == 0:

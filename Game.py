@@ -34,6 +34,7 @@ class Game(object):
         print("gamemode: {}".format(self.gamemode))
         self.bestScore = 0
         self.bestTime = 0
+        self.background = None
 
         self.player1.setColor([0, 0, 255])
         self.player2.setColor([255, 0, 0])
@@ -60,6 +61,9 @@ class Game(object):
 
         self.selectPlayerStatus(Elts.AI, Elts.AI)
         self.setGame()
+        
+    def setBackground(self, background):
+        self.background = background
 
     def selectPlayerStatus(self, status1, status2):
         self.player1.setStatus(status1)
