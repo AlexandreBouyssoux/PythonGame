@@ -39,12 +39,19 @@ class Controller(ControllerBase):
         self.LEFT = Game.LEFT
         self.RIGHT = Game.RIGHT
         self.createBot()
-        self.bestScore = 0
+        self.run = False
 
-    def launchGame(self):
-        self.game.setGame()
-        for i in range [0,1]:
-            self.playerList[i].score = 0
+    def setGame(self):
+        self.run = False
+        self.time = 0
+        self.game.resetGame()
+        self.run = True
+
+    def pause(self):
+        if self.run is True:
+            self.run = False
+        else:
+            self.run = True
 
     def getPlayerInformations(self, player):
         drawPoint = player.getDrawPoint()
@@ -115,6 +122,26 @@ class Controller(ControllerBase):
     def updateTime(self):
         self.time += self.game.gameTick
 
+    def getTime(self):
+        """
+        return time under form: 00:00:00
+        """
+        nbrSecondes = self.time // 1000
+        nbrMillisecondes = self.time % 1000
+        nbrMinutes = nbrSecondes // 60
+        nbrSecondes = nbrSecondes % 60
+        listeTime = [nbrMinutes, nbrSecondes, nbrMillisecondes]
+
+        for i, nbr in enumerate(listeTime):
+            if nbr < 10:
+                result = "0" + str(nbr)
+            else:
+                result = str(nbr)
+            listeTime[i] = result
+
+        strTime = ":".join(listeTime)
+        return strTime
+
     def checkEndOfGame(self):
         self.game.isGameOver(self.time)
 
@@ -139,10 +166,10 @@ class Controller(ControllerBase):
         elif couleur == COLOR_LIST[2]:
             player.setColor((0, 255, 0))
         elif couleur == COLOR_LIST[3]:
-            player.setColor((122, 123, 0))
+            player.setColor((255, 255, 0))
+        self.game.updateCageColor()
 
     def setGameType(self, num):
-        print("we are here")
         print(Game.GAME_MODES[num])
         self.game.gamemode = Game.GAME_MODES[num]
 

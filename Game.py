@@ -42,13 +42,13 @@ class Game(object):
                               upRightCornerPos=(Elts.WINDOW_SIZE[0],
                                                 Elts.WINDOW_SIZE[-1] -
                                                 Elts.CAGE_H))
-        self.cage1.setColor((0, 255, 0))
+        self.cage1.setColor(self.player1.getColor())
         self.cage2 = Elts.Box(Elts.CAGE_W, Elts.CAGE_H,
                               upRightCornerPos=(Elts.WINDOW_SIZE[-2] -
                                                 Elts.CAGE_W,
                                                 Elts.WINDOW_SIZE[-1] -
                                                 Elts.CAGE_H))
-        self.cage2.setColor((0, 255, 0))
+        self.cage2.setColor(self.player2.getColor())
 
         self.cageBox1 = Elts.Box(Elts.CAGE_W, CAGE_BOX_H, upRightCornerPos=(
                 self.cage1.upRightCorner[0], self.cage1.upRightCorner[1] -
@@ -76,6 +76,11 @@ class Game(object):
         self.ball.setPosition(Elts.WINDOW_SIZE[-2]/2,
                               Elts.WINDOW_SIZE[0])
         self.ball.setSpeed(0, 0)
+
+    def resetGame(self):
+        self.player1.score = 0
+        self.player2.score = 0
+        self.setGame()
 
     def getElements(self):
         return(self.player1, self.player2, self.ball)
@@ -127,30 +132,34 @@ class Game(object):
                 print("player1 scores a goal {}".format(self.player1.score))
             self.setGame()
 
+    def updateCageColor(self):
+        self.cage1.setColor(self.player1.getColor())
+        self.cage2.setColor(self.player2.getColor())
+
     def isGameOver(self, time):
         gamemode = self.gamemode
         score1, score2 = self.getScore()
+
         if gamemode == GAME_MODES[0]:
-            print("gamemode 0")
             # First player to score 10 goals win the game
             if score1 >= 10:
                 self.gameOver(self.player1.name)
+                self.setBestPerformance(self.player1, time)
             elif score2 >= 10:
                 self.gameOver(self.player2.name)
-            self.upDateBestTime(time)
+                self.setBestPerformance(self.player2, time)
+
         elif gamemode == GAME_MODES[1]:
-            print("gamemode 1")
             # player with max score win
             if time >= GAME_TIME:
                 if score1 > score2:
                     self.gameOver(self.player1.name)
-                    self.upDateBestScore(score1)
+                    self.setBestPerformance(self.player1, score1)
                 elif score2 > score1:
                     self.gameOver(self.player2.name)
-                    self.upDateBestScore(score2)
+                    self.setBestPerformance(self.player2, score2)
                 else:
                     self.gameOver(None)
-
 
     def gameOver(self, winner):
         _, _ = self.getScore(verbose=1)
@@ -162,10 +171,8 @@ class Game(object):
             print("||||||||||||||||||END|||||||||||||||||||")
         sys.exit()
 
-    def upDateBestScore(self, score):
-        if score > self.bestScore:
-            self.bestScore = score
+    def setBestPerformance(self, player, perf):
+        self.performance = (player.name, perf)
 
-    def upDateBestTime(self, time):
-        if time < self.bestTime:
-            self.bestTime = time
+    def getBestPerformance(self):
+        return self.performance

@@ -31,13 +31,14 @@ GAMEMODES = ["Au score", "Au temps"]
 
 
 class mainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, app):
         super().__init__()
         self.setWindowTitle(TITLE)
         self.timer = QTimer()
         self.controller = Controller.Controller()
         self.centralWidget = Welcome(self, self.controller)
         self.setCentralWidget(self.centralWidget)
+        self.app = app
 
 
 class Welcome(QWidget):
@@ -221,6 +222,7 @@ class Welcome(QWidget):
                                     self.controller.playerList[0].score,
                                     self.controller.playerList[1].name,
                                     self.controller.playerList[1].score))
+        self.chrono = QLabel("00:00:00")
 
         self.launch = QPushButton("Lancer une partie")
         self.launch.clicked.connect(self.launchGame)
@@ -228,9 +230,7 @@ class Welcome(QWidget):
         self.leave = QPushButton("Quitter")
         self.leave.clicked.connect(self.leaveGame)
 
-        self.highScore = QLabel("Meilleur score {} : {}".format(
-                                self.controller.game.gamemode,
-                                self.controller.bestScore))
+        self.highScore = QLabel("Meilleur score {} : {}")
 
         self.view = GraphicView(self, self.timer, self.controller)
 
@@ -242,6 +242,7 @@ class Welcome(QWidget):
         layoutH2 = QHBoxLayout()
         layoutH2.addWidget(self.score1)
         layoutH2.addWidget(self.score2)
+        layoutH2.addWidget(self.chrono)
 
         layoutVD = QVBoxLayout()
         layoutVD.addLayout(layoutH1)
@@ -255,11 +256,12 @@ class Welcome(QWidget):
         self.controller.refresh()
 
     def refresh(self):
-        self.score2.setText(("{} : {} \ {} : {}".format(
+        self.score2.setText(("{} : {} | {} : {}".format(
                              self.controller.playerList[0].name,
                              self.controller.playerList[0].score,
                              self.controller.playerList[1].name,
                              self.controller.playerList[1].score)))
+        self.chrono.setText(self.controller.getTime())
 
     # mode de jeu
     def activate(self, number):
@@ -294,14 +296,11 @@ class Welcome(QWidget):
         self.controller.upDateBest(self, num)
         self.controller.refresh()
 
-    def showScores(self):
-        pass
-
     def launchGame(self):
-        self.removeWidget(self.layoutVG)
+        self.controller.setGame()
 
     def leaveGame(self):
-        pass
+        self.app.quit()
 
 
 class DropDownMenu(QWidget):
@@ -318,7 +317,6 @@ class DropDownMenu(QWidget):
             self.comboBox.addItem(item)
 
         self.comboBox.activated[str].connect(self.menuActionTriggered)
-
         self.show()
 
     def menuActionTriggered(self, item):
@@ -327,18 +325,10 @@ class DropDownMenu(QWidget):
         if self.name == "couleur 2":
             self.controller.setPlayerColor(1, item)
         if self.name == "mode":
-            print("I am here")
-            print(item)
-            print(GAMEMODES)
-            print(GAMEMODES.index(item))
             num = GAMEMODES.index(item)
-            print(num)
             self.controller.setGameType(num)
         if self.name == "fond":
             self.controller.setBackground(item)
-
-    def refresh(self):
-        pass
 
 
 class GraphicView(QGraphicsView):
@@ -355,9 +345,16 @@ class GraphicScene(QGraphicsScene):
         self.c.add(self)
         self.timer = timer
         self.setSceneRect(*self.c.WINDOW_SIZE)
+        self.run = self.c.run
 
-        for cage in self.c.getCageList():
-            pen = QPen(QColor(0, 0, 0), 1, Qt.DotLine)
+        self.dictCage = {}
+        for cage in self.c.getCageList()[:2]:
+            pen = QPen(QColor(0, 0, 0), 1, Qt.SolidLine)
+            brush = QBrush(QColor(*cage.color), Qt.CrossPattern)
+            self.dictCage[cage] = self.addRect(*cage.upRightCorner, cage.w,
+                                               cage.h, pen, brush)
+        for cage in self.c.getCageList()[2:]:
+            pen = QPen(QColor(0, 0, 0), 1, Qt.SolidLine)
             brush = QBrush(QColor(*cage.color), Qt.SolidPattern)
             self.addRect(*cage.upRightCorner, cage.w, cage.h, pen, brush)
 
@@ -367,18 +364,22 @@ class GraphicScene(QGraphicsScene):
                 self.c.getPlayerInformations(player)
             pen = QPen(QColor(*playerColor), 1, Qt.SolidLine)
             brush = QBrush(QColor(*playerColor), Qt.SolidPattern)
-            self.dictEllipse[player] = (self.addEllipse(0, 0, playerSize,
-                                                        playerSize, pen,
-                                                        brush))
+            self.dictEllipse[player] = (self.addEllipse(0, 0,
+                                        playerSize, playerSize, pen, brush))
+            self.dictEllipse[player].setPos(playerX, playerY)
 
         self.c.refresh()
         self.timer.timeout.connect(self.updateTimer)
         self.timer.start(self.c.game.gameTick)
 
     def updateTimer(self):
+        self.run = self.c.run
         self.c.refresh()
 
     def keyPressEvent(self, event):
+        if event.key() == Qt.Key_P:
+            self.c.pause()
+
         if not self.c.isAI(0):
             if event.key() == Qt.Key_Up:
                 self.c.movePlayer(self.c.JUMP, 0)
@@ -406,16 +407,22 @@ class GraphicScene(QGraphicsScene):
                 self.c.refresh()
 
     def refresh(self):
-        self.c.moveAI()
-        self.c.collisions()
         for player in self.c.getPlayerList():
-            playerX, playerY = self.c.getPlayerPosition(player)
-            self.dictEllipse[player].setPos(playerX, playerY)
             playerColor = player.getColor()
             brush = QBrush(QColor(*playerColor), Qt.SolidPattern)
             self.dictEllipse[player].setBrush(brush)
-        self.c.updateTime()
-        self.c.checkEndOfGame()
+        for cage in self.c.getCageList()[:2]:
+            brush = QBrush(QColor(*cage.color), Qt.CrossPattern)
+            self.dictCage[cage].setBrush(brush)
+
+        if self.run is True:
+            self.c.moveAI()
+            self.c.collisions()
+            for player in self.c.getPlayerList():
+                playerX, playerY = self.c.getPlayerPosition(player)
+                self.dictEllipse[player].setPos(playerX, playerY)
+            self.c.updateTime()
+            self.c.checkEndOfGame()
 
 
 # launch the GUI
@@ -423,7 +430,7 @@ class GraphicScene(QGraphicsScene):
 
 def main():
     app = QApplication(sys.argv)
-    window = mainWindow()
+    window = mainWindow(app)
     window.show()
     app.exec()
 
