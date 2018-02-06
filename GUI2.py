@@ -364,14 +364,17 @@ class GraphicScene(QGraphicsScene):
         for player in self.c.getPlayerList():
             playerX, playerY, playerSize, playerColor = \
                 self.c.getPlayerInformations(player)
-            pen = QPen(QColor(*playerColor), 1, Qt.SolidLine)
+            pen = QPen(QColor(255, 255, 255), 1, Qt.SolidLine)
             brush = QBrush(QColor(*playerColor), Qt.SolidPattern)
             self.dictEllipse[player] = (self.addEllipse(0, 0,
                                         playerSize, playerSize, pen, brush))
             self.dictEllipse[player].setPos(playerX, playerY)
-            
-            self.dictImage[player] = QLabel()
-            self.dictImage[player].show()
+
+            imagePlayer = QPixmap(player.image)
+            imagePlayerResized = imagePlayer.scaled(player.size, player.size,
+                                                    Qt.KeepAspectRatio)
+            self.dictImage[player] = self.addPixmap(imagePlayerResized)
+            self.dictImage[player].setPos(playerX, playerY)
 
         self.c.refresh()
         self.timer.timeout.connect(self.updateTimer)
@@ -416,18 +419,16 @@ class GraphicScene(QGraphicsScene):
             playerColor = player.getColor()
             brush = QBrush(QColor(*playerColor), Qt.SolidPattern)
             self.dictEllipse[player].setBrush(brush)
-            print(player.image)
+
             imagePlayer = QPixmap(player.image)
-            imagePlayerResized = imagePlayer.scaled(player.size, player.size, 
+            imagePlayerResized = imagePlayer.scaled(player.size,
+                                                    player.size,
                                                     Qt.KeepAspectRatio)
             self.dictImage[player].setPixmap(imagePlayerResized)
-            self.dictImage[player].show()
-            
+
         for cage in self.c.getCageList()[:2]:
             brush = QBrush(QColor(*cage.color), Qt.CrossPattern)
             self.dictCage[cage].setBrush(brush)
-            
-        
 
         if self.run is True:
             self.c.moveAI()
