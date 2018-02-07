@@ -16,7 +16,8 @@ COEF_REBOND = 0.5
 CAGE_W = 100
 CAGE_H = 250
 CAGE_BOX_H = 30
-MAX_SPEED = PLAYER_SIZE/2
+BALL_MAX_SPEED = BALL_SIZE/2
+PLAYER_MAX_SPEED = PLAYER_SIZE/2
 PLAYER = "player"
 AI = "ai"
 BALL = "ball"
@@ -36,9 +37,10 @@ class Base(object):
         self.gravity = GRAVITY_BALL
         self.speedIncrease = SPEED_INCREASE
         self.speedDecrease = SPEED_DECREASE
-        self.maxSpeed = MAX_SPEED
+        self.maxSpeed = BALL_MAX_SPEED
         self.rebond = True
         self.debug = True
+        self.image = None
 
     def _applyGravity(self):
         applyGravity = True
@@ -157,6 +159,9 @@ class Base(object):
     def getSpeed(self):
         return(self.xSpeed, self.ySpeed)
 
+    def setImage(self, image):
+        self.image = image
+
 
 class Player(Base):
     def __init__(self):
@@ -165,6 +170,7 @@ class Player(Base):
         self.gravity = GRAVITY_PLAYER
         self.jumpHeight = JUMP_HEIGHT
         self.size = PLAYER_SIZE
+        self.maxSpeed = PLAYER_MAX_SPEED
         self.score = 0
         self.rebond = False
         self.debug = False

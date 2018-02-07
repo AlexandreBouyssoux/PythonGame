@@ -2,6 +2,8 @@
 
 # import
 import sys
+import os
+import pickle
 import Elements as Elts
 import Interactions
 
@@ -13,14 +15,18 @@ GAME_TICK = 60
 GAME_MODES = ["First to 10", "Best in 2 min"]
 DEFAULT_GAME_MODE = GAME_MODES[0]
 AI = Elts.AI
+PLAYER = Elts.PLAYER
 JUMP = "jump"
 LEFT = "left"
 RIGHT = "right"
+DIRECTORY = os.getcwd()
+RESSOURCE = os.path.join(DIRECTORY, "Ressources")
 # class
 
 
 class Game(object):
     def __init__(self):
+        self.stop = False
         self.player1 = Elts.Player()
         self.player1.setName("Player1")
         self.player2 = Elts.Player()
@@ -31,6 +37,9 @@ class Game(object):
         self.gameTick = GAME_TICK
         self.gamemode = DEFAULT_GAME_MODE
         print("gamemode: {}".format(self.gamemode))
+        self.bestScore = 0
+        self.bestTime = 0
+        self.background = None
 
         self.player1.setColor([0, 0, 255])
         self.player2.setColor([255, 0, 0])
@@ -39,13 +48,13 @@ class Game(object):
                               upRightCornerPos=(Elts.WINDOW_SIZE[0],
                                                 Elts.WINDOW_SIZE[-1] -
                                                 Elts.CAGE_H))
-        self.cage1.setColor((0, 255, 0))
+        self.cage1.setColor(self.player1.getColor())
         self.cage2 = Elts.Box(Elts.CAGE_W, Elts.CAGE_H,
                               upRightCornerPos=(Elts.WINDOW_SIZE[-2] -
                                                 Elts.CAGE_W,
                                                 Elts.WINDOW_SIZE[-1] -
                                                 Elts.CAGE_H))
-        self.cage2.setColor((0, 255, 0))
+        self.cage2.setColor(self.player2.getColor())
 
         self.cageBox1 = Elts.Box(Elts.CAGE_W, CAGE_BOX_H, upRightCornerPos=(
                 self.cage1.upRightCorner[0], self.cage1.upRightCorner[1] -
@@ -57,6 +66,9 @@ class Game(object):
 
         self.selectPlayerStatus(Elts.AI, Elts.AI)
         self.setGame()
+
+    def setBackground(self, background):
+        self.background = background
 
     def selectPlayerStatus(self, status1, status2):
         self.player1.setStatus(status1)
@@ -73,6 +85,11 @@ class Game(object):
         self.ball.setPosition(Elts.WINDOW_SIZE[-2]/2,
                               Elts.WINDOW_SIZE[0])
         self.ball.setSpeed(0, 0)
+
+    def resetGame(self):
+        self.player1.score = 0
+        self.player2.score = 0
+        self.setGame()
 
     def getElements(self):
         return(self.player1, self.player2, self.ball)
@@ -121,34 +138,76 @@ class Game(object):
         if self.inter.isBallintoCage(self.cage2, self.ball):
             self.player1.scores()
             if verbose > 0:
-                print("player1 scores a goal")
+                print("player1 scores a goal {}".format(self.player1.score))
             self.setGame()
+
+    def updateCageColor(self):
+        self.cage1.setColor(self.player1.getColor())
+        self.cage2.setColor(self.player2.getColor())
 
     def isGameOver(self, time):
         gamemode = self.gamemode
         score1, score2 = self.getScore()
+
         if gamemode == GAME_MODES[0]:
             # First player to score 10 goals win the game
-            if score1 == 10:
+            if score1 >= 10:
+                self.setBestPerformance(self.player1, time)
                 self.gameOver(self.player1.name)
-            elif score2 == 10:
+            elif score2 >= 10:
+                self.setBestPerformance(self.player2, time)
                 self.gameOver(self.player2.name)
         elif gamemode == GAME_MODES[1]:
             # player with max score win
             if time >= GAME_TIME:
                 if score1 > score2:
+                    self.setBestPerformance(self.player1, score1)
                     self.gameOver(self.player1.name)
                 elif score2 > score1:
+                    self.setBestPerformance(self.player2, score2)
                     self.gameOver(self.player2.name)
                 else:
                     self.gameOver(None)
 
     def gameOver(self, winner):
         _, _ = self.getScore(verbose=1)
+        self.stop = True
         if winner:
+            self.updateHighScore()
             print("Game over, Winner: {}".format(winner))
             print("||||||||||||||||||END|||||||||||||||||||")
         else:
             print("Game over, It's a draw")
             print("||||||||||||||||||END|||||||||||||||||||")
-        sys.exit()
+        self.resetGame()
+
+    def setBestPerformance(self, player, perf):
+        self.performance = (player.name, perf)
+
+    def getBestPerformance(self):
+        return self.performance
+
+    def updateHighScore(self):
+        highscoreFile = os.path.join(RESSOURCE, "highscore.dat")
+        playerName, perf = self.getBestPerformance()
+        dictHighscore = pickle.load(open(highscoreFile, "rb"))
+        updateList = []
+        if self.gamemode == GAME_MODES[0]:
+            scoresList = dictHighscore["1"]
+            scoresList.append((perf, playerName))
+            scoresList.sort()
+            updateList = scoresList[:5]
+            dictHighscore["1"] = updateList
+
+        elif self.gamemode == GAME_MODES[1]:
+            scoresList = dictHighscore["2"]
+            scoresList.append((perf, playerName))
+            scoresList.sort(reverse=True)
+            updateList = scoresList[:5]
+            dictHighscore["2"] = updateList
+
+        else:
+            print("wrong gamemode detected, please verify")
+            sys.exit()
+
+        pickle.dump(dictHighscore, open(highscoreFile, "wb"))
