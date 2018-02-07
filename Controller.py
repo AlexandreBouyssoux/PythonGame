@@ -5,6 +5,7 @@ import Game
 import Bot
 import sys
 import os
+import pickle
 
 # constants
 AI = Game.AI
@@ -12,8 +13,7 @@ PLAYER = Game.PLAYER
 COLOR_LIST = ["OL", "SR", "ASSE", "FCN"]
 BACKGROUND_LIST = ["Parc OL", "Roazhon Park", "Geoffroy Guichard",
                    "La Beaujoire"]
-DIRECTORY = os.getcwd()
-RESSOURCE = os.path.join(DIRECTORY, "Ressources")
+RESSOURCE = Game.RESSOURCE
 
 JOUEUR_OL = os.path.join(RESSOURCE, 'Joueur_OL.png')
 JOUEUR_SR = os.path.join(RESSOURCE, 'Joueur_SR.png')
@@ -30,10 +30,10 @@ DICT_TEAM = {"OL": JOUEUR_OL,
              "ASSE": JOUEUR_ASSE,
              "FCN": JOUEUR_FCN}
 
-DICT_STADE = {"OL": STADE_OL,
-              "SR": STADE_SR,
-              "ASSE": STADE_ASSE,
-              "FCN": STADE_FCN}
+DICT_STADE = {"Parc OL": STADE_OL,
+              "Roazhon Park": STADE_SR,
+              "Geoffroy Guichard": STADE_ASSE,
+              "La Beaujoire": STADE_FCN}
 
 # class
 
@@ -77,6 +77,10 @@ class Controller(ControllerBase):
             self.run = False
         else:
             self.run = True
+
+    def stop(self):
+        if self.game.stop is True:
+            self.run = False
 
     def getPlayerInformations(self, player):
         drawPoint = player.getDrawPoint()
@@ -148,11 +152,15 @@ class Controller(ControllerBase):
         self.time += self.game.gameTick
 
     def getTime(self):
+        time = self.convertTime(self.time)
+        return time
+
+    def convertTime(self, time):
         """
         return time under form: 00:00:00
         """
-        nbrSecondes = self.time // 1000
-        nbrMillisecondes = self.time % 1000
+        nbrSecondes = time // 1000
+        nbrMillisecondes = time % 1000
         nbrMinutes = nbrSecondes // 60
         nbrSecondes = nbrSecondes % 60
         listeTime = [nbrMinutes, nbrSecondes, nbrMillisecondes]
@@ -169,6 +177,7 @@ class Controller(ControllerBase):
 
     def checkEndOfGame(self):
         self.game.isGameOver(self.time)
+        self.stop()
 
     def setPlayer(self, playerNum, playerType):
         """
@@ -201,12 +210,45 @@ class Controller(ControllerBase):
         print(Game.GAME_MODES[num])
         self.game.gamemode = Game.GAME_MODES[num]
 
-    def setBackground(self, background):
+    def setBackground(self, item):
+        print(item)
+        background = DICT_STADE[item]
         self.game.setBackground(background)
 
-    def upDateBest(self, num):
-        if num == 0:
-            self.bestScore = self.game.bestTime
-        if num == 1:
-            self.bestScore = self.game.bestScore
+    def getHighScore(self):
+        highscoreFile = os.path.join(RESSOURCE, "highscore.dat")
+        dictHighscore = pickle.load(open(highscoreFile, "rb"))
+        dictForDisplay = {}
+        listScore_gm1 = []
+        listScore_gm2 = []
 
+        for element in dictHighscore["1"]:
+            string = str(element[1]) + " : " + self.convertTime(element[0])
+            listScore_gm1.append(string)
+        for element in dictHighscore["2"]:
+            string = str(element[1]) + " : " + str(element[0])
+            listScore_gm2.append(string)
+        dictForDisplay[0] = listScore_gm1
+        dictForDisplay[1] = listScore_gm2
+
+        return dictForDisplay
+
+    def resetHighScore(self):
+        highscoreFile = os.path.join(RESSOURCE, "highscore.dat")
+        dictHighScore = {"1": [(999999, ""),
+                               (999999, ""),
+                               (999999, ""),
+                               (999999, ""),
+                               (999999, "")],
+                         "2": [(0, ""),
+                               (0, ""),
+                               (0, ""),
+                               (0, ""),
+                               (0, "")]
+                         }
+        pickle.dump(dictHighScore, open(highscoreFile, "wb"))
+
+
+if __name__ == "__main__":
+    c = Controller()
+#    c.resetHighScore()

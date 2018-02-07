@@ -3,11 +3,11 @@
 # import
 import sys
 from PyQt5.QtCore import qFatal, Qt, QTimer
-from PyQt5.QtGui import QPen, QColor, QBrush, QFont
+from PyQt5.QtGui import QPen, QColor, QBrush, QFont, QPixmap
 from PyQt5.QtWidgets import QMainWindow, QApplication, QGraphicsView,\
     QGraphicsScene, QPushButton, QHBoxLayout, QVBoxLayout, QWidget, QLabel, \
     QTextEdit, QMenuBar, QLineEdit, QSpacerItem, QSizePolicy, QToolButton, \
-    QMenu
+    QMenu, QFrame, QComboBox
 import Controller
 
 
@@ -17,129 +17,221 @@ import traceback
 
 def excepthook(type_, value, traceback_):
     traceback.print_exception(type_, value, traceback_)
-    qFatal('')
+    qFatal("")
 
 
 sys.excepthook = excepthook
+
+# CONSTANT
+TITLE = "OL - FCN : jeu de foot"
+COLOR_LIST = Controller.COLOR_LIST
+GAMEMODES = ["Au score", "Au temps"]
+BACKGROUND_LIST = Controller.BACKGROUND_LIST
 
 # class
 
 
 class mainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, app):
         super().__init__()
-        self.setWindowTitle("OL - FCN : jeu de foot")
+        self.setWindowTitle(TITLE)
         self.timer = QTimer()
         self.controller = Controller.Controller()
-        self.centralWidget = Welcome(self, self.controller)
+        self.centralWidget = Welcome(self, self.controller, app)
         self.setCentralWidget(self.centralWidget)
 
 
 class Welcome(QWidget):
-    def __init__(self, parent, controller):
+    def __init__(self, parent, controller, app):
         super().__init__(parent)
         self.controller = controller
         self.controller.add(self)
         self.timer = QTimer()
-        self.activePlayer1 = None
-        self.activePlayer2 = None
-        self.activeParam = None
-        #self.activeGame = None
+        self.app = app
+        self.activeHighScore = False
 
-        self.parameters = QLabel('       Paramètres')
-        self.newfont = QFont("?", 14, QFont.Bold)
-        self.parameters.setFont(self.newfont)
+        # # #
+        # # # Definition du layout Vertical Gauche
+        # # #
+        self.layoutVG = QVBoxLayout()
+        self.spacerItem1 = QSpacerItem(5, 2, QSizePolicy.Maximum,
+                                       QSizePolicy.Expanding)
+        self.layoutVG.addItem(self.spacerItem1)
 
-        self.paramPlayer1 = QPushButton('Joueur 1')
-        self.paramPlayer1.clicked.connect(lambda : self.activate(1))
-        self.paramPlayer1_IA_1 = QLabel('Le joueur 1 est-t-il humain ou IA ?')
-        self.paramPlayer1_IA_2 = QPushButton ('Humain')
-        self.paramPlayer1_IA_2.clicked.connect(lambda : self.setPlayer(1, "player"))
-        self.paramPlayer1_IA_3 = QPushButton ('IA')
-        self.paramPlayer1_IA_3.clicked.connect(lambda : self.setPlayer(1, "ai"))
-        self.paramPlayer1Name_1 = QLabel('Nom')
-        self.paramPlayer1Name_2 = QLineEdit('Joueur 1')
-        self.paramPlayer1Name_3 = QPushButton ('Ok')
-        self.paramPlayer1Name_3.clicked.connect(lambda : self.setPlayerName(1, \
-                                                    self.paramPlayer1Name_2.text()))
-        self.paramPlayer1Color_1 = QLabel('Couleur (déroulez la flèche)')
-        self.paramPlayer1Color_2 = DropDownMenu(self, self.controller, \
-                                                'couleur 1', ['bleu', 'rouge', \
-                                                            'vert', 'jaune'])
-        self.paramPlayer1Ok = QPushButton('Valider')
-        self.paramPlayer1Ok.clicked.connect(lambda : self.unactivate(1))
+        # titre paramètre en gras
+        self.parameters = QLabel("Paramètres")
+        self.parameters.setFont(QFont("?", 14, QFont.Bold))
+        self.layoutVG.addWidget(self.parameters)
 
-        self.paramPlayer2 = QPushButton('Joueur 2')
-        self.paramPlayer2.clicked.connect(lambda : self.activate(2))
-        self.paramPlayer2_IA_1 = QLabel('Le joueur 2 est-t-il humain ou IA ?')
-        self.paramPlayer2_IA_2 = QPushButton ('Humain')
-        self.paramPlayer2_IA_2.clicked.connect(lambda : self.setPlayer(2, "player"))
-        self.paramPlayer2_IA_3 = QPushButton ('IA')
-        self.paramPlayer2_IA_2.clicked.connect(lambda : self.setPlayer(2, "ai"))
-        self.paramPlayer2Name_1 = QLabel('Nom')
-        self.paramPlayer2Name_2 = QLineEdit('Joueur 2')
-        self.paramPlayer2Name_3 = QPushButton ('Ok')
-        self.paramPlayer2Name_3.clicked.connect(lambda : self.setPlayerName(2, \
-                                                    self.paramPlayer2Name_2.text()))
-        self.paramPlayer2Color_1 = QLabel('Couleur (déroulez la flèche)')
-        self.paramPlayer2Color_2 = DropDownMenu(self, self.controller, \
-                                                'couleur 2', ['bleu', 'rouge', \
-                                                            'vert', 'jaune'])
-        self.paramPlayer2Ok = QPushButton('Valider')
-        self.paramPlayer2Ok.clicked.connect(lambda : self.unactivate(2))
+        # fonctions clikables
+        self.player1_human = lambda: self.setPlayer(0, Controller.PLAYER)
+        self.player1_robot = lambda: self.setPlayer(0, Controller.AI)
+        self.player2_human = lambda: self.setPlayer(1, Controller.PLAYER)
+        self.player2_robot = lambda: self.setPlayer(1, Controller.AI)
 
-        self.paramGame = QPushButton('Paramètres du jeu')
-        self.paramGame.clicked.connect(lambda : self.activate(3))
-        self.paramGame_1 = QLabel ('Mode de jeu : (déroulez la flèche)')
-        self.paramGame_2 = DropDownMenu(self, self.controller, \
-                                                'mode', ['Au temps','Au score'])
-        #self.paramGame_2 = QPushButton ('Au temps')
-        #self.paramGame_2.clicked.connect(lambda : self.setGameType(1))
-        #self.paramGame_3 = QPushButton ('Au score')
-        #self.paramGame_3.clicked.connect(lambda : self.setGameType(0))
+        self.setPlayer1Name = lambda: self.setPlayerName(0,
+                                            self.paramPlayer1NameEdit.text())
+        self.setPlayer2Name = lambda: self.setPlayerName(1,
+                                            self.paramPlayer2NameEdit.text())
 
-        self.design_1 = QLabel ('Fond du jeu : (déroulez la flèche)')
-        self.design_2 = DropDownMenu(self, self.controller, \
-                                                'fond', ['A','B'])
-        self.paramGameOk = QPushButton('Valider')
-        self.paramGameOk.clicked.connect(lambda : self.unactivate(3))
+        self.activateFrame1 = lambda: self.activate(1)
+        self.activateFrame2 = lambda: self.activate(2)
+        self.activateFrame3 = lambda: self.activate(3)
+        self.unactivateFrame1 = lambda: self.unactivate(1)
+        self.unactivateFrame2 = lambda: self.unactivate(2)
+        self.unactivateFrame3 = lambda: self.unactivate(3)
 
-        self.score1 = QLabel('Score : ')
-        self.score2 = QLineEdit('{} : {} \ {} : {}'.format(\
-                                    self.controller.playerList[0].name, \
-                                    self.controller.playerList[0].score, \
-                                    self.controller.playerList[1].name, \
+        # paramètre joueurs
+        self.paramPlayer1_stat = QLabel("Le joueur 1 est-t-il humain ou IA ?")
+        self.paramPlayer2_stat = QLabel("Le joueur 2 est-t-il humain ou IA ?")
+
+        self.paramPlayer1_human = QPushButton("Humain")
+        self.paramPlayer1_human.clicked.connect(self.player1_human)
+        self.paramPlayer1_robot = QPushButton("IA")
+        self.paramPlayer1_robot.clicked.connect(self.player1_robot)
+
+        self.paramPlayer2_human = QPushButton("Humain")
+        self.paramPlayer2_human.clicked.connect(self.player2_human)
+        self.paramPlayer2_robot = QPushButton("IA")
+        self.paramPlayer2_robot.clicked.connect(self.player2_robot)
+
+        self.paramPlayer1Name = QLabel("Nom")
+        self.paramPlayer2Name = QLabel("Nom")
+
+        self.paramPlayer1NameEdit = QLineEdit("Joueur 1")
+        self.paramPlayer1NameConfirm = QPushButton("Ok")
+        self.paramPlayer1NameConfirm.clicked.connect(self.setPlayer1Name)
+
+        self.paramPlayer2NameEdit = QLineEdit("Joueur 2")
+        self.paramPlayer2NameConfirm = QPushButton("Ok")
+        self.paramPlayer2NameConfirm.clicked.connect(self.setPlayer2Name)
+
+        self.paramPlayer1ColorTitle = QLabel("Couleur")
+        self.paramPlayer2ColorTitle = QLabel("Couleur")
+
+        self.paramPlayer1Color = DropDownMenu(self, self.controller,
+                                              "couleur 1", COLOR_LIST)
+        self.paramPlayer2Color = DropDownMenu(self, self.controller,
+                                              "couleur 2", COLOR_LIST)
+
+        self.paramPlayer1_Ok = QPushButton("Valider")
+        self.paramPlayer1_Ok.clicked.connect(self.unactivateFrame1)
+        self.paramPlayer2_Ok = QPushButton("Valider")
+        self.paramPlayer2_Ok.clicked.connect(self.unactivateFrame2)
+
+        # bouton Joueur 1
+        self.paramPlayer1 = QPushButton("Joueur 1")
+        self.paramPlayer1.clicked.connect(self.activateFrame1)
+        self.layoutVG.addWidget(self.paramPlayer1)
+
+        # layer paramètre joueur 1
+        self.frame1 = QFrame()
+        self.layoutV1 = QVBoxLayout()
+        self.frame1.setLayout(self.layoutV1)
+        self.layoutV1.addWidget(self.paramPlayer1_stat)
+        # under-layout: select player status
+        self.underLayout1 = QHBoxLayout()
+        self.underLayout1.addWidget(self.paramPlayer1_human)
+        self.underLayout1.addWidget(self.paramPlayer1_robot)
+        self.layoutV1.addLayout(self.underLayout1)
+        # under-layout: select player name
+        self.underLayout2 = QHBoxLayout()
+        self.underLayout2.addWidget(self.paramPlayer1Name)
+        self.underLayout2.addWidget(self.paramPlayer1NameEdit)
+        self.underLayout2.addWidget(self.paramPlayer1NameConfirm)
+        self.layoutV1.addLayout(self.underLayout2)
+        # under-layout: select player color
+        self.underLayout3 = QHBoxLayout()
+        self.underLayout3.addWidget(self.paramPlayer1ColorTitle)
+        self.underLayout3.addWidget(self.paramPlayer1Color)
+        self.layoutV1.addLayout(self.underLayout3)
+
+        self.layoutV1.addWidget(self.paramPlayer1_Ok)
+        self.frame1.hide()
+        self.layoutVG.addWidget(self.frame1)
+
+        # bouton Joueur 2
+        self.paramPlayer2 = QPushButton("Joueur 2")
+        self.paramPlayer2.clicked.connect(self.activateFrame2)
+        self.layoutVG.addWidget(self.paramPlayer2)
+
+        # layer paramètre joueur 2
+        self.frame2 = QFrame()
+        self.layoutV2 = QVBoxLayout()
+        self.frame2.setLayout(self.layoutV2)
+        self.layoutV2.addWidget(self.paramPlayer2_stat)
+        # under-layout: select player status
+        self.underLayout1 = QHBoxLayout()
+        self.underLayout1.addWidget(self.paramPlayer2_human)
+        self.underLayout1.addWidget(self.paramPlayer2_robot)
+        self.layoutV2.addLayout(self.underLayout1)
+        # under-layout: select player name
+        self.underLayout2 = QHBoxLayout()
+        self.underLayout2.addWidget(self.paramPlayer2Name)
+        self.underLayout2.addWidget(self.paramPlayer2NameEdit)
+        self.underLayout2.addWidget(self.paramPlayer2NameConfirm)
+        self.layoutV2.addLayout(self.underLayout2)
+        # under-layout: select player color
+        self.underLayout3 = QHBoxLayout()
+        self.underLayout3.addWidget(self.paramPlayer2ColorTitle)
+        self.underLayout3.addWidget(self.paramPlayer2Color)
+        self.layoutV2.addLayout(self.underLayout3)
+
+        self.layoutV2.addWidget(self.paramPlayer2_Ok)
+        self.frame2.hide()
+        self.layoutVG.addWidget(self.frame2)
+
+        # bouton paramètre game
+        self.paramGame = QPushButton("Paramètres du jeu")
+        self.paramGame.clicked.connect(self.activateFrame3)
+        self.layoutVG.addWidget(self.paramGame)
+
+        # paramètre game
+        self.paramGame_title = QLabel("Mode de jeu :")
+        self.paramGame_menu = DropDownMenu(self, self.controller,
+                                           "mode", GAMEMODES)
+
+        self.design_title = QLabel("Fond du jeu :")
+        self.design_menu = DropDownMenu(self, self.controller,
+                                        "fond", BACKGROUND_LIST)
+
+        self.paramGame_Ok = QPushButton("Valider")
+        self.paramGame_Ok.clicked.connect(self.unactivateFrame3)
+
+        # layout paramètre game
+        self.frame3 = QFrame()
+        self.layoutV3 = QVBoxLayout()
+        self.frame3.setLayout(self.layoutV3)
+        self.layoutV3.addWidget(self.paramGame)
+        self.layoutV3.addWidget(self.paramGame_title)
+        self.layoutV3.addWidget(self.paramGame_menu)
+        self.layoutV3.addWidget(self.design_title)
+        self.layoutV3.addWidget(self.design_menu)
+        self.layoutV3.addWidget(self.paramGame_Ok)
+
+        self.frame3.hide()
+        self.layoutVG.addWidget(self.frame3)
+
+        self.layoutVG.addItem(self.spacerItem1)
+
+        self.score1 = QLabel("Score : ")
+        self.score2 = QLabel("{} : {} \ {} : {}".format(
+                                    self.controller.playerList[0].name,
+                                    self.controller.playerList[0].score,
+                                    self.controller.playerList[1].name,
                                     self.controller.playerList[1].score))
+        self.chrono = QLabel("00:00:00")
 
-        self.launch = QPushButton('Lancer une partie')
+        self.launch = QPushButton("Lancer une partie")
         self.launch.clicked.connect(self.launchGame)
 
-        self.leave = QPushButton('Quitter')
+        self.leave = QPushButton("Quitter")
         self.leave.clicked.connect(self.leaveGame)
 
-        self.highScore = QLabel('Meilleur score {} : {}'.format(\
-                                self.controller.game.gamemode, \
-                                self.controller.bestScore))
+        self.highScore = QPushButton("Highscores")
+        self.highScore.clicked.connect(self.showHighScore)
 
         self.view = GraphicView(self, self.timer, self.controller)
-
-        self.spacerItem1 = QSpacerItem(5, 2, QSizePolicy.Maximum, \
-                                         QSizePolicy.Expanding)
-
-        self.layoutVG = QVBoxLayout()
-        self.layoutV1 = QVBoxLayout()
-        self.layoutV2 = QVBoxLayout()
-        self.layoutV3 = QVBoxLayout()
-
-        self.layoutVG.addItem(self.spacerItem1)
-        self.layoutVG.addWidget(self.parameters)
-        self.layoutVG.addWidget(self.paramPlayer1)
-        self.layoutVG.addLayout(self.layoutV1)
-        self.layoutVG.addWidget(self.paramPlayer2)
-        self.layoutVG.addLayout(self.layoutV2)
-        self.layoutVG.addWidget(self.paramGame)
-        self.layoutVG.addLayout(self.layoutV3)
-        self.layoutVG.addItem(self.spacerItem1)
 
         layoutH1 = QHBoxLayout()
         layoutH1.addWidget(self.launch)
@@ -149,126 +241,97 @@ class Welcome(QWidget):
         layoutH2 = QHBoxLayout()
         layoutH2.addWidget(self.score1)
         layoutH2.addWidget(self.score2)
+        layoutH2.addWidget(self.chrono)
 
-        layoutVD = QVBoxLayout()
-        layoutVD.addLayout(layoutH1)
-        layoutVD.addWidget(self.view)
-        layoutVD.addLayout(layoutH2)
+        layoutVC = QVBoxLayout()
+        layoutVC.addLayout(layoutH1)
+        layoutVC.addWidget(self.view)
+        layoutVC.addLayout(layoutH2)
+
+        self.frameD = QFrame()
+        self.frameD.hide()
+        layoutVD = QHBoxLayout()
+        self.frameD.setLayout(layoutVD)
+        layoutV_gamemode1 = QVBoxLayout()
+        layoutV_gamemode2 = QVBoxLayout()
+        layoutVD.addLayout(layoutV_gamemode1)
+        layoutVD.addSpacing(20)
+        layoutVD.addLayout(layoutV_gamemode2)
+
+        highScoreTitle1 = QLabel("Best time")
+        highScoreSubtitle1 = QLabel("score 10 goals")
+        gm1_score1 = QLabel()
+        gm1_score2 = QLabel()
+        gm1_score3 = QLabel()
+        gm1_score4 = QLabel()
+        gm1_score5 = QLabel()
+
+        highScoreTitle2 = QLabel("Number of goals")
+        highScoreSubtitle2 = QLabel("in 2 min")
+        gm2_score1 = QLabel()
+        gm2_score2 = QLabel()
+        gm2_score3 = QLabel()
+        gm2_score4 = QLabel()
+        gm2_score5 = QLabel()
+
+        self.highscore_gm1 = [gm1_score1, gm1_score2, gm1_score3, gm1_score4,
+                              gm1_score5]
+        self.highscore_gm2 = [gm2_score1, gm2_score2, gm2_score3, gm2_score4,
+                              gm2_score5]
+
+        layoutV_gamemode1.addWidget(highScoreTitle1)
+        layoutV_gamemode1.addWidget(highScoreSubtitle1)
+        layoutV_gamemode1.addSpacing(50)
+
+        layoutV_gamemode2.addWidget(highScoreTitle2)
+        layoutV_gamemode2.addWidget(highScoreSubtitle2)
+        layoutV_gamemode2.addSpacing(50)
+
+        for qlabel in self.highscore_gm1:
+            layoutV_gamemode1.addWidget(qlabel)
+        for qlabel in self.highscore_gm2:
+            layoutV_gamemode2.addWidget(qlabel)
+
+        layoutV_gamemode1.addSpacing(400)
+        layoutV_gamemode2.addSpacing(400)
+
         self.mainLayout = QHBoxLayout()
         self.mainLayout.addLayout(self.layoutVG)
-        self.mainLayout.addLayout(layoutVD)
+        self.mainLayout.addLayout(layoutVC)
+        self.mainLayout.addWidget(self.frameD)
         self.setLayout(self.mainLayout)
 
         self.controller.refresh()
 
     def refresh(self):
-        if self.activePlayer1 == True:
-            self.layoutV1.addWidget(self.paramPlayer1_IA_1)
-            self.underLayout1 = QHBoxLayout()
-            self.underLayout1.addWidget(self.paramPlayer1_IA_2)
-            self.underLayout1.addWidget(self.paramPlayer1_IA_3)
-            self.layoutV1.addLayout(self.underLayout1)
-            self.underLayout2 = QHBoxLayout()
-            self.underLayout2.addWidget(self.paramPlayer1Name_1)
-            self.underLayout2.addWidget(self.paramPlayer1Name_2)
-            self.underLayout2.addWidget(self.paramPlayer1Name_3)
-            self.layoutV1.addLayout(self.underLayout2)
-            self.underLayout3 = QHBoxLayout()
-            self.underLayout3.addWidget(self.paramPlayer1Color_1)
-            self.underLayout3.addWidget(self.paramPlayer1Color_2)
-            self.layoutV1.addLayout(self.underLayout3)
-            self.layoutV1.addWidget(self.paramPlayer1Ok)
-        elif self.activePlayer1 == False:
-            self.removeLayout(self.layoutV1, self.underLayout1)
-            self.removeLayout(self.layoutV1, self.underLayout2)
-            self.removeLayout(self.layoutV1, self.underLayout3)
-            #self.removeWidget(self.underLayout2)
-            #self.removeWidget(self.underLayout3)
-            #self.removeWidget(self.layoutV1)
+        self.score2.setText(("{} : {} | {} : {}".format(
+                             self.controller.playerList[0].name,
+                             self.controller.playerList[0].score,
+                             self.controller.playerList[1].name,
+                             self.controller.playerList[1].score)))
+        self.chrono.setText(self.controller.getTime())
 
-        if self.activePlayer2 == True:
-            self.layoutV2.addWidget(self.paramPlayer2_IA_1)
-            self.underLayout4 = QHBoxLayout()
-            self.underLayout4.addWidget(self.paramPlayer2_IA_2)
-            self.underLayout4.addWidget(self.paramPlayer2_IA_3)
-            self.layoutV2.addLayout(self.underLayout4)
-            self.underLayout5 = QHBoxLayout()
-            self.underLayout5.addWidget(self.paramPlayer2Name_1)
-            self.underLayout5.addWidget(self.paramPlayer2Name_2)
-            self.underLayout5.addWidget(self.paramPlayer2Name_3)
-            self.layoutV2.addLayout(self.underLayout5)
-            self.underLayout6 = QHBoxLayout()
-            self.underLayout6.addWidget(self.paramPlayer2Color_1)
-            self.underLayout6.addWidget(self.paramPlayer2Color_2)
-            self.layoutV2.addLayout(self.underLayout6)
-            self.layoutV2.addWidget(self.paramPlayer2Ok)
-        elif self.activePlayer2 == False:
-            self.removeWidget(self.layoutV2)
-            self.removeWidget(self.underLayout4)
-            self.removeWidget(self.underLayout5)
-            self.removeWidget(self.underLayout6)
+    # mode de jeu
+    def activate(self, number):
+        if number == 1:
+            self.frame1.show()
+        elif number == 2:
+            self.frame2.show()
+        elif number == 3:
+            self.frame3.show()
 
-
-        if self.activeParam == True:
-            self.layoutV3.addWidget(self.paramGame_1)
-            self.underLayout7 = QHBoxLayout()
-            self.underLayout7.addWidget(self.paramGame_2)
-            #self.underLayout7.addWidget(self.paramGame_3)
-            self.layoutV3.addLayout(self.underLayout7)
-            self.layoutV3.addWidget(self.design_1)
-            self.underLayout8 = QHBoxLayout()
-            self.underLayout8.addWidget(self.design_2)
-            self.layoutV3.addLayout(self.underLayout8)
-            self.layoutV3.addWidget(self.paramGameOk)
-        elif self.activeParam == False:
-            self.removeWidget(self.layoutV3)
-            self.removeWidget(self.underLayout7)
-            self.removeWidget(self.underLayout8)
-
-        self.score2 = QLineEdit('{} : {} \ {} : {}'.format(\
-                                    self.controller.playerList[0].name, \
-                                    self.controller.playerList[0].score, \
-                                    self.controller.playerList[1].name, \
-                                    self.controller.playerList[1].score))
-
-        # mode de jeu
-
-
-
-    def activate(self, playerNum):
-        if playerNum == 1:
-            self.activePlayer1 = True
-            print ('ok')
-        if playerNum == 2:
-            self.activePlayer2 = True
-        if playerNum == 3:
-            self.activeParam = True
-        self.controller.refresh()
-
-    def unactivate(self, playerNum):
-        if playerNum == 1:
-            self.activePlayer1 = False
-        if playerNum == 2:
-            self.activePlayer2 = False
-        if playerNum == 3:
-            self.activeParam = False
-        self.controller.refresh()
-
-    def removeWidget(self, layout):
-        while layout.count():
-            self.item = layout.takeAt(0)
-            self.widget = self.item.widget()
-            if self.widget is not None:
-                self.widget.deleteLater()
-
-    def removeLayout(self, layout, box):
-        for i in range(layout.count()):
-            layout_item = layout.itemAt(i)
-            if layout_item.layout() == box:
-                layout.removeItem(layout_item)
+    def unactivate(self, number):
+        if number == 1:
+            self.frame1.hide()
+        elif number == 2:
+            self.frame2.hide()
+        elif number == 3:
+            self.frame3.hide()
 
     def setPlayer(self, playerNum, playerType):
-    # définit si le joueur est un robot ou un humain (choix de l'utilisateur)
+        """
+        define if player is robot or human (user choice)
+        """
         self.controller.setPlayer(playerNum, playerType)
         self.controller.refresh()
 
@@ -281,52 +344,56 @@ class Welcome(QWidget):
         self.controller.upDateBest(self, num)
         self.controller.refresh()
 
-    def showScores(self):
-        pass
-
     def launchGame(self):
-        self.removeWidget(self.layoutVG)
+        self.controller.setGame()
 
     def leaveGame(self):
-        pass
+        self.app.quit()
 
+    def showHighScore(self):
+        highscore = self.controller.getHighScore()
+        if self.activeHighScore is False:
+            self.activeHighScore = True
+            self.frameD.show()
+            for indice, liste in enumerate([self.highscore_gm1,
+                                            self.highscore_gm2]):
+                h = highscore[indice]
+                for i, qlabel in enumerate(liste):
+                    string = h[i]
+                    qlabel.setText("{}. {}".format(i+1, string))
+        else:
+            self.activeHighScore = False
+            self.frameD.hide()
 
 
 class DropDownMenu(QWidget):
     def __init__(self, parent, controller, name, items=[]):
         super().__init__(parent)
         self.name = name
-        self.menuLayout = QVBoxLayout()
-        self.menu = QMenu()
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
         self.controller = controller
-        self.controller.add(self)
+        self.comboBox = QComboBox(self)
+        self.layout.addWidget(self.comboBox)
 
-        for i in items:
-          self.menu.addAction(i)
+        for item in items:
+            self.comboBox.addItem(item)
 
-        self.button = QToolButton(self)
-        self.button.setStyleSheet('border: 0px; padding: 0px;')
-        self.button.setCursor(Qt.ArrowCursor)
-        #self.button.setText(self.name)
-        self.button.triggered.connect(lambda : self.menuActionTriggered
-        self.button.setPopupMode(QToolButton.InstantPopup)
-        self.button.setMenu(self.menu)
-        self.menuLayout.addWidget(self.button)
-        self.setLayout(self.menuLayout)
-
+        self.comboBox.activated[str].connect(self.menuActionTriggered)
+        self.show()
 
     def menuActionTriggered(self, item):
-        if self.name =='couleur 1':
+        if self.name == "couleur 1":
+            self.controller.setPlayerColor(0, item)
+        if self.name == "couleur 2":
             self.controller.setPlayerColor(1, item)
-        if self.name == 'couleur 2':
-            self.controller.setPlayerColor(2, item)
-        if self.name == 'mode':
-            self.controller.setGameType(item)
-        if self.name == 'fond':
+        if self.name == "mode":
+            num = GAMEMODES.index(item)
+            self.controller.setGameType(num)
+        if self.name == "fond":
+            print(1)
             self.controller.setBackground(item)
-
-    def refresh(self):
-        pass
+            print(2)
 
 
 class GraphicView(QGraphicsView):
@@ -343,30 +410,52 @@ class GraphicScene(QGraphicsScene):
         self.c.add(self)
         self.timer = timer
         self.setSceneRect(*self.c.WINDOW_SIZE)
+        self.run = self.c.run
 
-        for cage in self.c.getCageList():
-            pen = QPen(QColor(0, 0, 0), 1, Qt.DotLine)
+        imageBack = QPixmap(self.c.game.background)
+        imageBackResized = imageBack.scaled(*self.c.WINDOW_SIZE[2:])
+        self.background = self.addPixmap(imageBackResized)
+
+        self.dictCage = {}
+        for cage in self.c.getCageList()[:2]:
+            pen = QPen(QColor(0, 0, 0), 1, Qt.SolidLine)
+            brush = QBrush(QColor(*cage.color), Qt.CrossPattern)
+            self.dictCage[cage] = self.addRect(*cage.upRightCorner, cage.w,
+                                               cage.h, pen, brush)
+        for cage in self.c.getCageList()[2:]:
+            pen = QPen(QColor(0, 0, 0), 1, Qt.SolidLine)
             brush = QBrush(QColor(*cage.color), Qt.SolidPattern)
             self.addRect(*cage.upRightCorner, cage.w, cage.h, pen, brush)
 
         self.dictEllipse = {}
+        self.dictImage = {}
         for player in self.c.getPlayerList():
             playerX, playerY, playerSize, playerColor = \
                 self.c.getPlayerInformations(player)
-            pen = QPen(QColor(*playerColor), 1, Qt.SolidLine)
+            pen = QPen(QColor(255, 255, 255), 1, Qt.SolidLine)
             brush = QBrush(QColor(*playerColor), Qt.SolidPattern)
-            self.dictEllipse[player] = (self.addEllipse(0, 0, playerSize,
-                                                        playerSize, pen,
-                                                        brush))
+            self.dictEllipse[player] = (self.addEllipse(0, 0,
+                                        playerSize, playerSize, pen, brush))
+            self.dictEllipse[player].setPos(playerX, playerY)
+
+            imagePlayer = QPixmap(player.image)
+            imagePlayerResized = imagePlayer.scaled(player.size, player.size,
+                                                    Qt.KeepAspectRatio)
+            self.dictImage[player] = self.addPixmap(imagePlayerResized)
+            self.dictImage[player].setPos(playerX, playerY)
 
         self.c.refresh()
         self.timer.timeout.connect(self.updateTimer)
         self.timer.start(self.c.game.gameTick)
 
     def updateTimer(self):
+        self.run = self.c.run
         self.c.refresh()
 
     def keyPressEvent(self, event):
+        if event.key() == Qt.Key_P:
+            self.c.pause()
+
         if not self.c.isAI(0):
             if event.key() == Qt.Key_Up:
                 self.c.movePlayer(self.c.JUMP, 0)
@@ -394,14 +483,35 @@ class GraphicScene(QGraphicsScene):
                 self.c.refresh()
 
     def refresh(self):
-        self.c.moveAI()
-        self.c.collisions()
-        for player in self.c.getPlayerList():
-            playerX, playerY = self.c.getPlayerPosition(player)
-            self.dictEllipse[player].setPos(playerX, playerY)
-        self.c.updateTime()
-        self.c.checkEndOfGame()
 
+        imageBack = QPixmap(self.c.game.background)
+        imageBackResized = imageBack.scaled(*self.c.WINDOW_SIZE[2:])
+        self.background.setPixmap(imageBackResized)
+
+        for player in self.c.getPlayerList():
+            playerColor = player.getColor()
+            brush = QBrush(QColor(*playerColor), Qt.SolidPattern)
+            self.dictEllipse[player].setBrush(brush)
+
+            imagePlayer = QPixmap(player.image)
+            imagePlayerResized = imagePlayer.scaled(player.size,
+                                                    player.size,
+                                                    Qt.KeepAspectRatio)
+            self.dictImage[player].setPixmap(imagePlayerResized)
+
+        for cage in self.c.getCageList()[:2]:
+            brush = QBrush(QColor(*cage.color), Qt.CrossPattern)
+            self.dictCage[cage].setBrush(brush)
+
+        if self.run is True:
+            self.c.moveAI()
+            self.c.collisions()
+            for player in self.c.getPlayerList():
+                playerX, playerY = self.c.getPlayerPosition(player)
+                self.dictEllipse[player].setPos(playerX, playerY)
+                self.dictImage[player].setPos(playerX, playerY)
+            self.c.updateTime()
+            self.c.checkEndOfGame()
 
 
 # launch the GUI
@@ -409,10 +519,10 @@ class GraphicScene(QGraphicsScene):
 
 def main():
     app = QApplication(sys.argv)
-    window = mainWindow()
+    window = mainWindow(app)
     window.show()
     app.exec()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

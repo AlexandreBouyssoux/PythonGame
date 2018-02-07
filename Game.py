@@ -2,6 +2,8 @@
 
 # import
 import sys
+import os
+import pickle
 import Elements as Elts
 import Interactions
 
@@ -17,11 +19,14 @@ PLAYER = Elts.PLAYER
 JUMP = "jump"
 LEFT = "left"
 RIGHT = "right"
+DIRECTORY = os.getcwd()
+RESSOURCE = os.path.join(DIRECTORY, "Ressources")
 # class
 
 
 class Game(object):
     def __init__(self):
+        self.stop = False
         self.player1 = Elts.Player()
         self.player1.setName("Player1")
         self.player2 = Elts.Player()
@@ -61,7 +66,7 @@ class Game(object):
 
         self.selectPlayerStatus(Elts.AI, Elts.AI)
         self.setGame()
-        
+
     def setBackground(self, background):
         self.background = background
 
@@ -147,36 +152,62 @@ class Game(object):
         if gamemode == GAME_MODES[0]:
             # First player to score 10 goals win the game
             if score1 >= 10:
-                self.gameOver(self.player1.name)
                 self.setBestPerformance(self.player1, time)
+                self.gameOver(self.player1.name)
             elif score2 >= 10:
-                self.gameOver(self.player2.name)
                 self.setBestPerformance(self.player2, time)
-
+                self.gameOver(self.player2.name)
         elif gamemode == GAME_MODES[1]:
             # player with max score win
             if time >= GAME_TIME:
                 if score1 > score2:
-                    self.gameOver(self.player1.name)
                     self.setBestPerformance(self.player1, score1)
+                    self.gameOver(self.player1.name)
                 elif score2 > score1:
-                    self.gameOver(self.player2.name)
                     self.setBestPerformance(self.player2, score2)
+                    self.gameOver(self.player2.name)
                 else:
                     self.gameOver(None)
 
     def gameOver(self, winner):
         _, _ = self.getScore(verbose=1)
+        self.stop = True
         if winner:
+            self.updateHighScore()
             print("Game over, Winner: {}".format(winner))
             print("||||||||||||||||||END|||||||||||||||||||")
         else:
             print("Game over, It's a draw")
             print("||||||||||||||||||END|||||||||||||||||||")
-        sys.exit()
+        self.resetGame()
 
     def setBestPerformance(self, player, perf):
         self.performance = (player.name, perf)
 
     def getBestPerformance(self):
         return self.performance
+
+    def updateHighScore(self):
+        highscoreFile = os.path.join(RESSOURCE, "highscore.dat")
+        playerName, perf = self.getBestPerformance()
+        dictHighscore = pickle.load(open(highscoreFile, "rb"))
+        updateList = []
+        if self.gamemode == GAME_MODES[0]:
+            scoresList = dictHighscore["1"]
+            scoresList.append((perf, playerName))
+            scoresList.sort()
+            updateList = scoresList[:5]
+            dictHighscore["1"] = updateList
+
+        elif self.gamemode == GAME_MODES[1]:
+            scoresList = dictHighscore["2"]
+            scoresList.append((perf, playerName))
+            scoresList.sort(reverse=True)
+            updateList = scoresList[:5]
+            dictHighscore["2"] = updateList
+
+        else:
+            print("wrong gamemode detected, please verify")
+            sys.exit()
+
+        pickle.dump(dictHighscore, open(highscoreFile, "wb"))
