@@ -12,7 +12,8 @@ WINDOW_SIZE = Elts.WINDOW_SIZE
 CAGE_BOX_H = Elts.CAGE_BOX_H
 GAME_TIME = 2*60000
 GAME_TICK = 60
-GAME_MODES = ["First to 10", "Best in 2 min"]
+GAME_MODES = ["Premier à 10 (standard)", "Au temps en 2 min (standard)", 
+              "Meilleur au score choisi", "Meilleur au temps choisi"]
 DEFAULT_GAME_MODE = GAME_MODES[0]
 AI = Elts.AI
 PLAYER = Elts.PLAYER
@@ -37,8 +38,8 @@ class Game(object):
         self.gameTick = GAME_TICK
         self.gamemode = DEFAULT_GAME_MODE
         print("gamemode: {}".format(self.gamemode))
-        self.bestScore = 0
-        self.bestTime = 0
+        self.limitTime = GAME_TIME
+        self.limitScore = 10
         self.background = None
 
         self.player1.setColor([0, 0, 255])
@@ -153,18 +154,37 @@ class Game(object):
             # First player to score 10 goals win the game
             if score1 >= 10:
                 self.setBestPerformance(self.player1, time)
+                self.updateHighScore()
                 self.gameOver(self.player1.name)
             elif score2 >= 10:
                 self.setBestPerformance(self.player2, time)
+                self.updateHighScore()
                 self.gameOver(self.player2.name)
         elif gamemode == GAME_MODES[1]:
             # player with max score win
             if time >= GAME_TIME:
                 if score1 > score2:
                     self.setBestPerformance(self.player1, score1)
+                    self.updateHighScore()
                     self.gameOver(self.player1.name)
                 elif score2 > score1:
                     self.setBestPerformance(self.player2, score2)
+                    self.updateHighScore()
+                    self.gameOver(self.player2.name)
+                else:
+                    self.gameOver(None)
+        if gamemode == GAME_MODES[2]:
+            # First player to score x goals win the game
+            if score1 >= self.limitScore:
+                self.gameOver(self.player1.name)
+            elif score2 >= self.limitScore:
+                self.gameOver(self.player2.name)
+        elif gamemode == GAME_MODES[3]:
+            # player with max score win
+            if time >= self.limitTime:
+                if score1 > score2:
+                    self.gameOver(self.player1.name)
+                elif score2 > score1:
                     self.gameOver(self.player2.name)
                 else:
                     self.gameOver(None)
@@ -173,7 +193,6 @@ class Game(object):
         _, _ = self.getScore(verbose=1)
         self.stop = True
         if winner:
-            self.updateHighScore()
             print("Game over, Winner: {}".format(winner))
             print("||||||||||||||||||END|||||||||||||||||||")
         else:

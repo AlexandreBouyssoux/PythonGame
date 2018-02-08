@@ -7,7 +7,7 @@ from PyQt5.QtGui import QPen, QColor, QBrush, QFont, QPixmap
 from PyQt5.QtWidgets import QMainWindow, QApplication, QGraphicsView,\
     QGraphicsScene, QPushButton, QHBoxLayout, QVBoxLayout, QWidget, QLabel, \
     QTextEdit, QMenuBar, QLineEdit, QSpacerItem, QSizePolicy, QToolButton, \
-    QMenu, QFrame, QComboBox
+    QMenu, QFrame, QComboBox, QSlider
 import Controller
 
 
@@ -25,7 +25,7 @@ sys.excepthook = excepthook
 # CONSTANT
 TITLE = "OL - FCN : jeu de foot"
 COLOR_LIST = Controller.COLOR_LIST
-GAMEMODES = ["Au score", "Au temps"]
+GAMEMODES = Controller.GAME_MODES
 BACKGROUND_LIST = Controller.BACKGROUND_LIST
 
 # class
@@ -63,7 +63,7 @@ class Welcome(QWidget):
         self.parameters.setFont(QFont("?", 14, QFont.Bold))
         self.layoutVG.addWidget(self.parameters)
 
-        # fonctions clikables
+        # fonctions cliquables
         self.player1_human = lambda: self.setPlayer(0, Controller.PLAYER)
         self.player1_robot = lambda: self.setPlayer(0, Controller.AI)
         self.player2_human = lambda: self.setPlayer(1, Controller.PLAYER)
@@ -118,6 +118,9 @@ class Welcome(QWidget):
         self.paramPlayer1_Ok.clicked.connect(self.unactivateFrame1)
         self.paramPlayer2_Ok = QPushButton("Valider")
         self.paramPlayer2_Ok.clicked.connect(self.unactivateFrame2)
+        
+        self.player1Buttons = QLabel("Utiliser les flèches pour jouer")
+        self.player2Buttons = QLabel("Utliser les touches Z Q S D pour jouer")
 
         # bouton Joueur 1
         self.paramPlayer1 = QPushButton("Joueur 1")
@@ -149,6 +152,13 @@ class Welcome(QWidget):
         self.layoutV1.addWidget(self.paramPlayer1_Ok)
         self.frame1.hide()
         self.layoutVG.addWidget(self.frame1)
+        
+        self.frame1_1 = QFrame()
+        self.underLayout4 = QHBoxLayout()
+        self.frame1_1.setLayout(self.underLayout4)
+        self.underLayout4.addWidget(self.player1Buttons)
+        self.frame1_1.hide()
+        self.layoutVG.addWidget(self.frame1_1)
 
         # bouton Joueur 2
         self.paramPlayer2 = QPushButton("Joueur 2")
@@ -180,6 +190,13 @@ class Welcome(QWidget):
         self.layoutV2.addWidget(self.paramPlayer2_Ok)
         self.frame2.hide()
         self.layoutVG.addWidget(self.frame2)
+        
+        self.frame2_1 = QFrame()
+        self.underLayout4 = QHBoxLayout()
+        self.frame2_1.setLayout(self.underLayout4)
+        self.underLayout4.addWidget(self.player2Buttons)
+        self.frame2_1.hide()
+        self.layoutVG.addWidget(self.frame2_1)
 
         # bouton paramètre game
         self.paramGame = QPushButton("Paramètres du jeu")
@@ -190,6 +207,24 @@ class Welcome(QWidget):
         self.paramGame_title = QLabel("Mode de jeu :")
         self.paramGame_menu = DropDownMenu(self, self.controller,
                                            "mode", GAMEMODES)
+        
+        self.paramGame_time = QSlider(Qt.Horizontal)
+        self.paramGame_time.setMinimum(15)
+        self.paramGame_time.setMaximum(300)
+        self.paramGame_time.setValue(120)
+        self.paramGame_time.setTickInterval(10)
+        self.paramGame_time.valueChanged.connect(self.setLimitTime)
+        self.paramGame_timeTitle = QLabel("{} secondes".format(\
+                                          self.paramGame_time.value()))
+        
+        self.paramGame_score = QSlider(Qt.Horizontal)
+        self.paramGame_score.setMinimum(2)
+        self.paramGame_score.setMaximum(30)
+        self.paramGame_score.setValue(10)
+        self.paramGame_score.setTickInterval(1)
+        self.paramGame_score.valueChanged.connect(self.setLimitScore)
+        self.paramGame_scoreTitle = QLabel(" Choisir le score : {} points"\
+                                          .format(self.paramGame_score.value()))
 
         self.design_title = QLabel("Fond du jeu :")
         self.design_menu = DropDownMenu(self, self.controller,
@@ -205,6 +240,23 @@ class Welcome(QWidget):
         self.layoutV3.addWidget(self.paramGame)
         self.layoutV3.addWidget(self.paramGame_title)
         self.layoutV3.addWidget(self.paramGame_menu)
+        
+        self.frame3_1 = QFrame()
+        self.underLayout1 = QVBoxLayout()
+        self.frame3_1.setLayout(self.underLayout1)
+        self.underLayout1.addWidget(self.paramGame_timeTitle)
+        self.underLayout1.addWidget(self.paramGame_time)
+        self.frame3_1.hide()
+        self.layoutV3.addWidget(self.frame3_1)
+        
+        self.frame3_2 = QFrame()
+        self.underLayout3 = QVBoxLayout()
+        self.frame3_2.setLayout(self.underLayout3)
+        self.underLayout3.addWidget(self.paramGame_scoreTitle)
+        self.underLayout3.addWidget(self.paramGame_score)
+        self.frame3_2.hide()
+        self.layoutV3.addWidget(self.frame3_2)
+        
         self.layoutV3.addWidget(self.design_title)
         self.layoutV3.addWidget(self.design_menu)
         self.layoutV3.addWidget(self.paramGame_Ok)
@@ -220,7 +272,10 @@ class Welcome(QWidget):
                                     self.controller.playerList[0].score,
                                     self.controller.playerList[1].name,
                                     self.controller.playerList[1].score))
-        self.chrono = QLabel("00:00:00")
+        
+        self.score2.setFont(QFont("?", 16, QFont.Bold))
+        self.chrono = QLabel("00:00:00") 
+        self.chrono.setFont(QFont("?", 16, QFont.Bold))
 
         self.launch = QPushButton("Lancer une partie")
         self.launch.clicked.connect(self.launchGame)
@@ -230,6 +285,8 @@ class Welcome(QWidget):
 
         self.highScore = QPushButton("Highscores")
         self.highScore.clicked.connect(self.showHighScore)
+        
+        self.pause = QLabel("Appuyer sur la touche P pour mettre la partie en pause")
 
         self.view = GraphicView(self, self.timer, self.controller)
 
@@ -237,14 +294,20 @@ class Welcome(QWidget):
         layoutH1.addWidget(self.launch)
         layoutH1.addWidget(self.leave)
         layoutH1.addWidget(self.highScore)
+        
+        layoutH3 = QHBoxLayout()
+        layoutH3.addSpacing(150)
+        layoutH3.addWidget(self.pause)
 
         layoutH2 = QHBoxLayout()
-        layoutH2.addWidget(self.score1)
+        #layoutH2.addWidget(self.score1)
+        layoutH2.addSpacing(150)
         layoutH2.addWidget(self.score2)
         layoutH2.addWidget(self.chrono)
 
         layoutVC = QVBoxLayout()
         layoutVC.addLayout(layoutH1)
+        layoutVC.addLayout(layoutH3)
         layoutVC.addWidget(self.view)
         layoutVC.addLayout(layoutH2)
 
@@ -259,7 +322,9 @@ class Welcome(QWidget):
         layoutVD.addLayout(layoutV_gamemode2)
 
         highScoreTitle1 = QLabel("Best time")
+        highScoreTitle1.setFont(QFont("?", 12, QFont.Bold))
         highScoreSubtitle1 = QLabel("score 10 goals")
+        highScoreSubtitle1.setFont(QFont("?", 12, QFont.Bold))
         gm1_score1 = QLabel()
         gm1_score2 = QLabel()
         gm1_score3 = QLabel()
@@ -267,7 +332,9 @@ class Welcome(QWidget):
         gm1_score5 = QLabel()
 
         highScoreTitle2 = QLabel("Number of goals")
+        highScoreTitle2.setFont(QFont("?", 12, QFont.Bold))
         highScoreSubtitle2 = QLabel("in 2 min")
+        highScoreSubtitle2.setFont(QFont("?", 12, QFont.Bold))
         gm2_score1 = QLabel()
         gm2_score2 = QLabel()
         gm2_score3 = QLabel()
@@ -279,10 +346,12 @@ class Welcome(QWidget):
         self.highscore_gm2 = [gm2_score1, gm2_score2, gm2_score3, gm2_score4,
                               gm2_score5]
 
+        layoutV_gamemode1.addSpacing(100)
         layoutV_gamemode1.addWidget(highScoreTitle1)
         layoutV_gamemode1.addWidget(highScoreSubtitle1)
         layoutV_gamemode1.addSpacing(50)
 
+        layoutV_gamemode2.addSpacing(100)
         layoutV_gamemode2.addWidget(highScoreTitle2)
         layoutV_gamemode2.addWidget(highScoreSubtitle2)
         layoutV_gamemode2.addSpacing(50)
@@ -310,6 +379,11 @@ class Welcome(QWidget):
                              self.controller.playerList[1].name,
                              self.controller.playerList[1].score)))
         self.chrono.setText(self.controller.getTime())
+        self.paramGame_scoreTitle.setText("Choisir le score : {} points".format(\
+                                          self.paramGame_score.value()))
+        self.paramGame_timeTitle.setText("Choisir le temps : {} secondes".format(\
+                                          self.paramGame_time.value()))
+        self.activateFrame()
 
     # mode de jeu
     def activate(self, number):
@@ -333,16 +407,45 @@ class Welcome(QWidget):
         define if player is robot or human (user choice)
         """
         self.controller.setPlayer(playerNum, playerType)
+        
+        if playerNum == 0:
+            if playerType == Controller.PLAYER:
+                self.frame1_1.show()
+            elif playerType == Controller.AI:
+                self.frame1_1.hide()
+                
+        if playerNum == 1:
+            if playerType == Controller.PLAYER:
+                self.frame2_1.show()
+            elif playerType == Controller.AI:
+                self.frame2_1.hide()
+                
         self.controller.refresh()
 
     def setPlayerName(self, playerNum, name):
         self.controller.setPlayerName(playerNum, name)
         self.controller.refresh()
 
-    def setGameType(self, num):
-        self.controller.setGameType(self, num)
-        self.controller.upDateBest(self, num)
-        self.controller.refresh()
+    #def setGameType(self, num):
+    #    self.controller.setGameType(self, num)
+    #    self.controller.upDateBest(self, num)r
+    #    self.controller.refresh()
+    
+    def activateFrame(self):
+        if self.controller.game.gamemode == GAMEMODES[2]:
+            self.frame3_2.show()
+        else:
+            self.frame3_2.hide()
+        if self.controller.game.gamemode == GAMEMODES[3]:
+            self.frame3_1.show()
+        else:
+            self.frame3_1.hide()
+        
+    def setLimitTime(self):
+        self.controller.setLimitTime(self.paramGame_time.value())
+        
+    def setLimitScore(self):
+        self.controller.setLimitScore(self.paramGame_score.value())
 
     def launchGame(self):
         self.controller.setGame()
