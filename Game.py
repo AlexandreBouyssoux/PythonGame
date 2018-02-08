@@ -41,6 +41,7 @@ class Game(object):
         self.limitTime = GAME_TIME
         self.limitScore = 10
         self.background = None
+        self.winner = False
 
         self.player1.setColor([0, 0, 255])
         self.player2.setColor([255, 0, 0])
@@ -88,6 +89,7 @@ class Game(object):
         self.ball.setSpeed(0, 0)
 
     def resetGame(self):
+        self.winner = False
         self.player1.score = 0
         self.player2.score = 0
         self.setGame()
@@ -193,12 +195,12 @@ class Game(object):
         _, _ = self.getScore(verbose=1)
         self.stop = True
         if winner:
+            self.winner = winner
             print("Game over, Winner: {}".format(winner))
             print("||||||||||||||||||END|||||||||||||||||||")
         else:
             print("Game over, It's a draw")
             print("||||||||||||||||||END|||||||||||||||||||")
-        #self.resetGame()
 
     def setBestPerformance(self, player, perf):
         self.performance = (player.name, perf)

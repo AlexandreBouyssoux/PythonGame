@@ -369,6 +369,10 @@ class Welcome(QWidget):
         self.mainLayout.addLayout(layoutVC)
         self.mainLayout.addWidget(self.frameD)
         self.setLayout(self.mainLayout)
+        
+        self.window = Popup(self, self.controller)
+        self.window.setGeometry(100, 100, 400, 200)
+        self.window.hide()
 
         self.controller.refresh()
 
@@ -386,6 +390,7 @@ class Welcome(QWidget):
                                          secondes".format(\
                                           self.paramGame_time.value()))
         self.activateFrame()
+        self.openPopUp()
 
     # mode de jeu
     def activate(self, number):
@@ -446,6 +451,12 @@ class Welcome(QWidget):
 
     def launchGame(self):
         self.controller.setGame()
+        
+    def openPopUp(self):
+        if self.controller.game.stop:
+            self.window.show()
+        #else:
+         #   self.window.hide()
 
     def leaveGame(self):
         self.app.quit()
@@ -611,6 +622,37 @@ class GraphicScene(QGraphicsScene):
             self.c.updateTime()
             self.c.checkEndOfGame()
 
+class Popup(QWidget):
+    def __init__(self, parent, controller):
+        super().__init__(parent)
+        self.controller = controller
+        self.controller.add(self)
+        self.winnerLabel = QLabel()
+        self.scoreLabel = QLabel()
+        self.timeLabel = QLabel()
+        
+        self.layoutV = QVBoxLayout()
+        self.layoutV.addWidget(self.winnerLabel)
+        self.layoutV.addWidget(self.scoreLabel)
+        self.layoutV.addWidget(self.timeLabel)
+        self.setLayout(self.layoutV)
+
+    def writeEvent(self):
+        winner = self.controller.game.winner
+        score = self.controller.game.getScore()
+        time = self.controller.time
+        convertedTime = self.controller.convertTime(time)
+        
+        if winner:
+            self.winnerLabel.setText("Le joueur {} a gagné".format(winner))
+            self.scoreLabel.setText("sur le score de {}".format(score))
+            self.timeLabel.setText("en {}".format(convertedTime))
+        else:
+            self.winnerLabel.setText("Match nul")
+            
+    def refresh(self):
+        self.writeEvent()
+        
 
 # launch the GUI
 
