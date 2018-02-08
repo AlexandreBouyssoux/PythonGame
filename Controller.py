@@ -42,6 +42,7 @@ DICT_STADE = {"Parc OL": STADE_OL,
 class ControllerBase:
     def __init__(self):
         self.listClient = []
+        self.off = False
 
     def add(self, client):
         self.listClient.append(client)

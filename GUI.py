@@ -7,7 +7,7 @@ from PyQt5.QtGui import QPen, QColor, QBrush, QFont, QPixmap
 from PyQt5.QtWidgets import QMainWindow, QApplication, QGraphicsView,\
     QGraphicsScene, QPushButton, QHBoxLayout, QVBoxLayout, QWidget, QLabel, \
     QTextEdit, QMenuBar, QLineEdit, QSpacerItem, QSizePolicy, QToolButton, \
-    QMenu, QFrame, QComboBox, QSlider
+    QMenu, QFrame, QComboBox, QSlider, QMessageBox
 import Controller
 
 
@@ -49,6 +49,7 @@ class Welcome(QWidget):
         self.timer = QTimer()
         self.app = app
         self.activeHighScore = False
+        self.pop = True
 
         # # #
         # # # Definition du layout Vertical Gauche
@@ -369,10 +370,6 @@ class Welcome(QWidget):
         self.mainLayout.addLayout(layoutVC)
         self.mainLayout.addWidget(self.frameD)
         self.setLayout(self.mainLayout)
-        
-        self.window = Popup(self, self.controller)
-        self.window.setGeometry(100, 100, 400, 200)
-        self.window.hide()
 
         self.controller.refresh()
 
@@ -390,7 +387,8 @@ class Welcome(QWidget):
                                          secondes".format(\
                                           self.paramGame_time.value()))
         self.activateFrame()
-        self.openPopUp()
+        if self.pop == True:
+            self.popUp()
 
     # mode de jeu
     def activate(self, number):
@@ -451,12 +449,25 @@ class Welcome(QWidget):
 
     def launchGame(self):
         self.controller.setGame()
+        self.pop = True
+         
+    def popUp(self):
+        winner = self.controller.game.winner
+        score = self.controller.game.getScore()
+        time = self.controller.time
+        convertedTime = self.controller.convertTime(time)
+        self.window = QMessageBox()
         
-    def openPopUp(self):
+        if winner:
+            self.window.setText("Le joueur {} a gagné sur le score de {} en {}"\
+                                .format(winner, score, convertedTime))
+        else:
+            self.window.setText("Match nul")
+            
         if self.controller.game.stop:
             self.window.show()
-        #else:
-         #   self.window.hide()
+            self.pop = False
+        
 
     def leaveGame(self):
         self.app.quit()
@@ -622,37 +633,6 @@ class GraphicScene(QGraphicsScene):
             self.c.updateTime()
             self.c.checkEndOfGame()
 
-class Popup(QWidget):
-    def __init__(self, parent, controller):
-        super().__init__(parent)
-        self.controller = controller
-        self.controller.add(self)
-        self.winnerLabel = QLabel()
-        self.scoreLabel = QLabel()
-        self.timeLabel = QLabel()
-        
-        self.layoutV = QVBoxLayout()
-        self.layoutV.addWidget(self.winnerLabel)
-        self.layoutV.addWidget(self.scoreLabel)
-        self.layoutV.addWidget(self.timeLabel)
-        self.setLayout(self.layoutV)
-
-    def writeEvent(self):
-        winner = self.controller.game.winner
-        score = self.controller.game.getScore()
-        time = self.controller.time
-        convertedTime = self.controller.convertTime(time)
-        
-        if winner:
-            self.winnerLabel.setText("Le joueur {} a gagné".format(winner))
-            self.scoreLabel.setText("sur le score de {}".format(score))
-            self.timeLabel.setText("en {}".format(convertedTime))
-        else:
-            self.winnerLabel.setText("Match nul")
-            
-    def refresh(self):
-        self.writeEvent()
-        
 
 # launch the GUI
 
