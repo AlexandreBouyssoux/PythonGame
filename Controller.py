@@ -71,6 +71,7 @@ class Controller(ControllerBase):
         self.run = False
         self.time = 0
         self.game.resetGame()
+        self.game.stop = False
         self.run = True
 
     def pause(self):

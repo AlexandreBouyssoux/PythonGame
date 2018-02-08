@@ -161,7 +161,7 @@ class Game(object):
                 self.updateHighScore()
                 self.gameOver(self.player2.name)
         elif gamemode == GAME_MODES[1]:
-            # player with max score win
+            # player with max score wins
             if time >= GAME_TIME:
                 if score1 > score2:
                     self.setBestPerformance(self.player1, score1)
@@ -180,7 +180,7 @@ class Game(object):
             elif score2 >= self.limitScore:
                 self.gameOver(self.player2.name)
         elif gamemode == GAME_MODES[3]:
-            # player with max score win
+            # player with max score wins
             if time >= self.limitTime:
                 if score1 > score2:
                     self.gameOver(self.player1.name)
@@ -198,7 +198,7 @@ class Game(object):
         else:
             print("Game over, It's a draw")
             print("||||||||||||||||||END|||||||||||||||||||")
-        self.resetGame()
+        #self.resetGame()
 
     def setBestPerformance(self, player, perf):
         self.performance = (player.name, perf)

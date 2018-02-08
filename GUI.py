@@ -286,7 +286,8 @@ class Welcome(QWidget):
         self.highScore = QPushButton("Highscores")
         self.highScore.clicked.connect(self.showHighScore)
         
-        self.pause = QLabel("Appuyer sur la touche P pour mettre la partie en pause")
+        self.pause = QLabel("Appuyer sur la touche P pour mettre la partie en"\
+                            " pause")
 
         self.view = GraphicView(self, self.timer, self.controller)
 
@@ -300,7 +301,6 @@ class Welcome(QWidget):
         layoutH3.addWidget(self.pause)
 
         layoutH2 = QHBoxLayout()
-        #layoutH2.addWidget(self.score1)
         layoutH2.addSpacing(150)
         layoutH2.addWidget(self.score2)
         layoutH2.addWidget(self.chrono)
@@ -379,9 +379,11 @@ class Welcome(QWidget):
                              self.controller.playerList[1].name,
                              self.controller.playerList[1].score)))
         self.chrono.setText(self.controller.getTime())
-        self.paramGame_scoreTitle.setText("Choisir le score : {} points".format(\
+        self.paramGame_scoreTitle.setText("Choisir le score : {} \
+                                          points".format(\
                                           self.paramGame_score.value()))
-        self.paramGame_timeTitle.setText("Choisir le temps : {} secondes".format(\
+        self.paramGame_timeTitle.setText("Choisir le temps : {} \
+                                         secondes".format(\
                                           self.paramGame_time.value()))
         self.activateFrame()
 
@@ -425,11 +427,6 @@ class Welcome(QWidget):
     def setPlayerName(self, playerNum, name):
         self.controller.setPlayerName(playerNum, name)
         self.controller.refresh()
-
-    #def setGameType(self, num):
-    #    self.controller.setGameType(self, num)
-    #    self.controller.upDateBest(self, num)r
-    #    self.controller.refresh()
     
     def activateFrame(self):
         if self.controller.game.gamemode == GAMEMODES[2]:
@@ -494,9 +491,7 @@ class DropDownMenu(QWidget):
             num = GAMEMODES.index(item)
             self.controller.setGameType(num)
         if self.name == "fond":
-            print(1)
             self.controller.setBackground(item)
-            print(2)
 
 
 class GraphicView(QGraphicsView):
