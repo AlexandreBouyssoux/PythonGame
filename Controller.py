@@ -10,6 +10,7 @@ import pickle
 # constants
 AI = Game.AI
 PLAYER = Game.PLAYER
+GAME_MODES = Game.GAME_MODES
 COLOR_LIST = ["OL", "SR", "ASSE", "FCN"]
 BACKGROUND_LIST = ["Parc OL", "Roazhon Park", "Geoffroy Guichard",
                    "La Beaujoire"]
@@ -41,6 +42,7 @@ DICT_STADE = {"Parc OL": STADE_OL,
 class ControllerBase:
     def __init__(self):
         self.listClient = []
+        self.off = False
 
     def add(self, client):
         self.listClient.append(client)
@@ -70,6 +72,7 @@ class Controller(ControllerBase):
         self.run = False
         self.time = 0
         self.game.resetGame()
+        self.game.stop = False
         self.run = True
 
     def pause(self):
@@ -209,6 +212,12 @@ class Controller(ControllerBase):
     def setGameType(self, num):
         print(Game.GAME_MODES[num])
         self.game.gamemode = Game.GAME_MODES[num]
+        
+    def setLimitTime(self, time):
+        self.game.limitTime = time*1000
+        
+    def setLimitScore(self, score):
+        self.game.limitScore = score
 
     def setBackground(self, item):
         print(item)
