@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QGraphicsView,\
 import Controller
 
 
+
 # errors management
 import traceback
 

@@ -62,9 +62,14 @@ class Bot(object):
         """
         directionsList = []
 
-        if self.botPos[1] >= self.ballPos[1]:
-            draw = np.random.randint(0, 3)
-            if not draw == 0:
+        if abs(self.botPos[0] - self.advCagePos[0]) > \
+        abs(self.ballPos[0] - self.advCagePos[0]):
+            if self.botPos[1] >= self.ballPos[1]:
+                draw = np.random.randint(0, 3)
+                if not draw == 0:
+                    directionsList.append(JUMP)
+        else:
+            if self.ballPos[1] == self.botPos[1]:
                 directionsList.append(JUMP)
 
         if self.botPos[0] < self.ballPos[0]:

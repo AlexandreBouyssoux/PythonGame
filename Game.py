@@ -45,6 +45,8 @@ class Game(object):
 
         self.player1.setColor([0, 0, 255])
         self.player2.setColor([255, 0, 0])
+        
+        self.ball.setImage(os.path.join(RESSOURCE, "soccer.png"))
 
         self.cage1 = Elts.Box(Elts.CAGE_W, Elts.CAGE_H,
                               upRightCornerPos=(Elts.WINDOW_SIZE[0],
